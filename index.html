@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="animation.css">
     <script src="animation.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="shield.png">
     <style>
         /* O contêiner principal com o efeito */
         .nebula-sky {
@@ -2588,9 +2589,9 @@
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
 
-                 // --- ADICIONE ESTA LINHA ---
-    updateSendToTableButtonState(cardId); 
-    // --- FIM DA LINHA ADICIONADA ---
+                // --- ADICIONE ESTA LINHA ---
+                updateSendToTableButtonState(cardId);
+                // --- FIM DA LINHA ADICIONADA ---
             }
             async function createCardElement(cardData) {
                 const cardWrapper = document.createElement('div');
@@ -2735,8 +2736,7 @@
                                             </div>
                                             `;
                 }).join('')}
-                                        <p class="text-xs text-gray-400 italic  mt-4">Perícias</p>
-                                        <div class="pericias-scroll-area flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;">
+                                        <div class="pericias-scroll-area flex flex-col gap-2 mt-2" style="max-height: 100px; overflow-y: auto;">
                                             <div class="flex items-center justify-center w-full"></div>
                                             ${periciasHtml}
                                         </div>
@@ -2803,41 +2803,41 @@
 
                 // No seu arquivo index.html, encontre esta função e modifique-a
 
-               // --- ADICIONE ESTE NOVO BLOCO ---
-document.addEventListener('click', async (e) => {
-    const sendToTableBtn = e.target.closest('#send-to-table-btn');
-    if (sendToTableBtn) {
-        const cardElement = sendToTableBtn.closest('.rpg-card');
-        if (!cardElement) return;
+                // --- ADICIONE ESTE NOVO BLOCO ---
+                document.addEventListener('click', async (e) => {
+                    const sendToTableBtn = e.target.closest('#send-to-table-btn');
+                    if (sendToTableBtn) {
+                        const cardElement = sendToTableBtn.closest('.rpg-card');
+                        if (!cardElement) return;
 
-        const charId = cardElement.dataset.cardId;
+                        const charId = cardElement.dataset.cardId;
 
-        // Verifica se tem a classe 'on-table' para decidir a ação
-        if (sendToTableBtn.classList.contains('on-table')) {
-            // Se sim, remove o personagem
-            if (confirm('Tem certeza que deseja remover este personagem da mesa?')) {
-                await removeCharacterFromTable(charId);
-            }
-        } else {
-            // Se não, envia o personagem (função que já existia)
-            await seddManalife(charId);
-        }
-    }
-});
+                        // Verifica se tem a classe 'on-table' para decidir a ação
+                        if (sendToTableBtn.classList.contains('on-table')) {
+                            // Se sim, remove o personagem
+                            if (confirm('Tem certeza que deseja remover este personagem da mesa?')) {
+                                await removeCharacterFromTable(charId);
+                            }
+                        } else {
+                            // Se não, envia o personagem (função que já existia)
+                            await seddManalife(charId);
+                        }
+                    }
+                });
 
-// Função para remover do Firebase a partir do index.html
-async function removeCharacterFromTable(charId) {
-    const { database, ref, remove } = window.firebaseDB;
-    const tableRef = ref(database, `gameTables/default-table/characters/${charId}`);
-    try {
-        await remove(tableRef);
-        showCustomAlert("Removido!", 'success');
-    } catch (error) {
-        console.error("Erro ao remover da mesa:", error);
-        showCustomAlert("Falha ao remover o personagem da mesa.");
-    }
-}
-// --- FIM DO NOVO BLOCO ---
+                // Função para remover do Firebase a partir do index.html
+                async function removeCharacterFromTable(charId) {
+                    const { database, ref, remove } = window.firebaseDB;
+                    const tableRef = ref(database, `gameTables/default-table/characters/${charId}`);
+                    try {
+                        await remove(tableRef);
+                        showCustomAlert("Removido!", 'success');
+                    } catch (error) {
+                        console.error("Erro ao remover da mesa:", error);
+                        showCustomAlert("Falha ao remover o personagem da mesa.");
+                    }
+                }
+                // --- FIM DO NOVO BLOCO ---
 
                 async function seddManalife(cardId) {
                     const characterData = await getData(CARD_STORE_NAME, cardId);
@@ -2914,107 +2914,114 @@ async function removeCharacterFromTable(charId) {
              * Inicia a escuta por atualizações na mesa de jogo do Firebase
              * e sincroniza os dados de volta para o IndexedDB local.
              */
-          function listenForTableUpdates() {
-        const {
-            database,
-            ref,
-            onValue
-        } = window.firebaseDB;
-        const tableRef = ref(database, 'gameTables/default-table/characters');
+            function listenForTableUpdates() {
+                const {
+                    database,
+                    ref,
+                    onValue
+                } = window.firebaseDB;
+                const tableRef = ref(database, 'gameTables/default-table/characters');
 
-        // onValue fica monitorando o 'nó' de personagens na mesa
-        onValue(tableRef, async (snapshot) => {
-            // CORREÇÃO: Garante que 'charactersOnTable' seja um objeto vazio ({}) se o snapshot for nulo (vazio).
-            const charactersOnTable = snapshot.val() || {};
+                // onValue fica monitorando o 'nó' de personagens na mesa
+                onValue(tableRef, async (snapshot) => {
+                    // CORREÇÃO: Garante que 'charactersOnTable' seja um objeto vazio ({}) se o snapshot for nulo (vazio).
+                    const charactersOnTable = snapshot.val() || {};
 
-            // Atualiza nosso rastreador global com os IDs dos personagens na mesa.
-            // Se 'charactersOnTable' for {}, 'Object.keys' retornará um array vazio, limpando o rastreador corretamente.
-            charactersOnTableIds = new Set(Object.keys(charactersOnTable));
+                    // Atualiza nosso rastreador global com os IDs dos personagens na mesa.
+                    // Se 'charactersOnTable' for {}, 'Object.keys' retornará um array vazio, limpando o rastreador corretamente.
+                    charactersOnTableIds = new Set(Object.keys(charactersOnTable));
 
-            // Verifica se um card está sendo exibido e atualiza o estado do seu botão
-            const displayedCardElement = document.querySelector('.rpg-card[data-card-id]');
-            if (displayedCardElement) {
-                updateSendToTableButtonState(displayedCardElement.dataset.cardId);
-            }
-
-            // Itera sobre cada personagem que está na mesa para sincronizar
-            for (const charId in charactersOnTable) {
-                const tableData = charactersOnTable[charId];
-
-                // 1. Tenta buscar o personagem correspondente no banco de dados local
-                const localCharData = await getData(CARD_STORE_NAME, charId);
-
-                // Se o personagem existe localmente, prossegue com a sincronização
-                if (localCharData) {
-                    let needsUpdate = false;
-                    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
-                    const manaIcon = cardOnScreen.querySelector('.potion-container');
-                    const moneyIcon = cardOnScreen.querySelector('.money-container');
-                    const card3d = cardOnScreen.querySelector('.nebula-sky');
-                    resetcard3d(card3d); // 2. Compara os valores e marca se precisa de atualização
-                    if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
-                        if (tableData.currentLife < localCharData.attributes.vidaAtual) {
-                            triggerCardPunch(card3d);
-                        }
-                        if (tableData.currentLife > localCharData.attributes.vidaAtual) {
-                            triggerCardLifeIn(card3d, vidaIcon);
-                        }
-                        localCharData.attributes.vidaAtual = tableData.currentLife;
-                        needsUpdate = true;
+                    // Verifica se um card está sendo exibido e atualiza o estado do seu botão
+                    const displayedCardElement = document.querySelector('.rpg-card[data-card-id]');
+                    if (displayedCardElement) {
+                        updateSendToTableButtonState(displayedCardElement.dataset.cardId);
                     }
-                    if (localCharData.attributes.manaAtual !== tableData.currentMana) {
-                        playMp3Sound('mana.mp3');
-                        if (localCharData.attributes.manaAtual > tableData.currentMana) {
-                            createManaMist(manaIcon, 'out', '#1a1a1a');
-                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                        }
-                        if (localCharData.attributes.manaAtual < tableData.currentMana) {
-                            createManaMist(manaIcon, 'in', '#a78bfa');
-                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                            createRuneEffect(card3d);
-                            setTimeout(() => {
-                                const rune = card3d.querySelector('.rune-container');
-                                if (rune) {
-                                    rune.remove();
+
+                    // Itera sobre cada personagem que está na mesa para sincronizar
+                    for (const charId in charactersOnTable) {
+                        const tableData = charactersOnTable[charId];
+
+                        // 1. Tenta buscar o personagem correspondente no banco de dados local
+                        const localCharData = await getData(CARD_STORE_NAME, charId);
+
+                        // Se o personagem existe localmente, prossegue com a sincronização
+                        if (localCharData) {
+                            let needsUpdate = false;
+
+                            // --- INÍCIO DA CORREÇÃO ---
+                            // Pega referências ao card e seus elementos de animação se ele estiver na tela
+                            const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+                            let card3d, vidaIcon, manaIcon, moneyIcon;
+
+                            if (cardOnScreen) {
+                                card3d = cardOnScreen.querySelector('.nebula-sky');
+                                vidaIcon = cardOnScreen.querySelector('.heart-container');
+                                manaIcon = cardOnScreen.querySelector('.potion-container');
+                                moneyIcon = cardOnScreen.querySelector('.money-container');
+                                resetcard3d(card3d); // Limpa animações anteriores
+                            }
+                            // --- FIM DA CORREÇÃO ---
+
+                            // 2. Compara os valores e marca se precisa de atualização E aciona a animação
+                            if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
+                                // Aciona a animação apenas se o card estiver visível
+                                if (cardOnScreen) {
+                                    if (tableData.currentLife < localCharData.attributes.vidaAtual) {
+                                        triggerCardPunch(card3d);
+                                    } else {
+                                        triggerCardLifeIn(card3d, vidaIcon);
+                                    }
                                 }
-                            }, 2500);
-                        }
+                                localCharData.attributes.vidaAtual = tableData.currentLife;
+                                needsUpdate = true;
+                            }
 
-                        localCharData.attributes.manaAtual = tableData.currentMana;
-                        needsUpdate = true;
+                            if (localCharData.attributes.manaAtual !== tableData.currentMana) {
+                                if (cardOnScreen) {
+                                    playMp3Sound('mana.mp3');
+                                    if (localCharData.attributes.manaAtual > tableData.currentMana) {
+                                        createManaMist(manaIcon, 'out', '#1a1a1a');
+                                        card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+                                    } else {
+                                        createManaMist(manaIcon, 'in', '#a78bfa');
+                                        card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                                    }
+                                }
+                                localCharData.attributes.manaAtual = tableData.currentMana;
+                                needsUpdate = true;
+                            }
+
+                            if (localCharData.dinheiro !== tableData.money) {
+                                if (cardOnScreen) {
+                                    playMp3Sound('money.mp3');
+                                    const direction = tableData.money > localCharData.dinheiro ? 'in' : 'out';
+                                    createManaMist(moneyIcon, direction, '#fcd34d');
+                                    card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+                                }
+                                localCharData.dinheiro = tableData.money;
+                                needsUpdate = true;
+                            }
+
+                            if (cardOnScreen) {
+                                triggerAnimation(card3d, 'animate');
+                            }
+
+                            // 3. Se algum valor mudou, salva no banco local e atualiza a UI
+                            if (needsUpdate) {
+                                await saveData(CARD_STORE_NAME, localCharData);
+                                console.log(`Personagem "${localCharData.title}" sincronizado da mesa.`);
+
+                                // 4. Verifica se o card atualizado é o que está sendo exibido na tela
+                                const displayedCardElement = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+                                if (displayedCardElement) {
+                                    // Se sim, atualiza os valores na interface gráfica
+                                    updateCardUI(charId, tableData);
+                                }
+                            }
+                        }
                     }
-                    if (localCharData.dinheiro !== tableData.money) {
-
-                        playMp3Sound('money.mp3');
-                        if (localCharData.dinheiro < tableData.money) {
-                            createManaMist(moneyIcon, 'in', '#fcd34d');
-                        }
-                        if (localCharData.dinheiro > tableData.money) {
-                            createManaMist(moneyIcon, 'out', '#fcd34d');
-                        }
-                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-
-                        localCharData.dinheiro = tableData.money;
-                        needsUpdate = true;
-                    }
-                    triggerAnimation(card3d, 'animate');
-                    // 3. Se algum valor mudou, salva no banco local e atualiza a UI
-                    if (needsUpdate) {
-                        await saveData(CARD_STORE_NAME, localCharData);
-                        console.log(`Personagem "${localCharData.title}" sincronizado da mesa.`);
-
-                        // 4. Verifica se o card atualizado é o que está sendo exibido na tela
-                        const displayedCardElement = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                        if (displayedCardElement) {
-                            // Se sim, atualiza os valores na interface gráfica
-                            updateCardUI(charId, tableData);
-                        }
-                    }
-                }
+                });
             }
-        });
-    }
             /**
              * Atualiza a interface gráfica de um card específico com novos dados.
              * @param {string} cardId - O ID do card a ser atualizado.
@@ -3952,6 +3959,7 @@ async function removeCharacterFromTable(charId) {
                         .remove();
                 }
             });
+
             cardDisplayArea.addEventListener('click', async (e) => {
                 const actionElement = e.target.closest('[data-action]');
                 const cardElement = e.target.closest('.rpg-card');
@@ -3996,178 +4004,98 @@ async function removeCharacterFromTable(charId) {
                 statusModal.classList.remove('hidden');
             }
 
-         statusForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentStatusEditingCardId) return;
+          statusForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentStatusEditingCardId) return;
 
-                const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
-                if (!cardData) return;
+    const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
+    if (!cardData) return;
 
-                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
+    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
+    const animationDuration = 500;
 
-                const animationDuration = 500;
+    const oldLife = cardData.attributes.vidaAtual;
+    const oldMana = cardData.attributes.manaAtual;
+    const oldMoney = cardData.dinheiro;
 
-                const oldLife = cardData.attributes.vidaAtual;
-                const oldMana = cardData.attributes.manaAtual;
-                const oldMoney = cardData.dinheiro;
+    const newLife = parseInt(modalVidaAtualInput.value);
+    const newMana = parseInt(modalManaAtualInput.value);
+    const newMoney = parseInt(modalDinheiroInput.value);
 
-                const newLife = parseInt(modalVidaAtualInput.value);
-                const newMana = parseInt(modalManaAtualInput.value);
-                const newMoney = parseInt(modalDinheiroInput.value);
+    // 1. Aciona as animações imediatamente
+    if (cardOnScreen) {
+        const vidaIcon = cardOnScreen.querySelector('.heart-container');
+        const manaIcon = cardOnScreen.querySelector('.potion-container');
+        const moneyIcon = cardOnScreen.querySelector('.money-container');
+        const card3d = cardOnScreen.querySelector('.nebula-sky');
+        resetcard3d(card3d);
 
-                if (cardOnScreen) {
-                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
-                    const manaIcon = cardOnScreen.querySelector('.potion-container');
-                    const moneyIcon = cardOnScreen.querySelector('.money-container');
-                    const card3d = cardOnScreen.querySelector('.nebula-sky');
-                    resetcard3d(card3d);
-
-                    if (newLife !== oldLife) {
-                        if (newLife < oldLife) {
-                            triggerCardPunch(card3d);
-                        }
-                        if (newLife > oldLife) {
-                            triggerCardLifeIn(card3d, vidaIcon);
-                        }
-                    }
-                    if (newMana !== oldMana) {
-                        playMp3Sound('mana.mp3');
-                        if (newMana < oldMana) {
-                            createManaMist(manaIcon, 'out', '#1a1a1a');
-                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                        }
-                        if (newMana > oldMana) {
-                            createManaMist(manaIcon, 'in', '#a78bfa');
-                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                            createRuneEffect(card3d);
-                            setTimeout(() => {
-                                const rune = card3d.querySelector('.rune-container');
-                                if (rune) {
-                                    rune.remove();
-                                }
-                            }, 2500);
-                        }
-                    }
-                    if (newMoney !== oldMoney) {
-                        playMp3Sound('money.mp3');
-                        if (newMoney > oldMoney) {
-                            createManaMist(moneyIcon, 'in', '#fcd34d');
-                        }
-                        if (newMoney < oldMoney) {
-                            createManaMist(moneyIcon, 'out', '#fcd34d');
-                        }
-                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-                    }
-                    triggerAnimation(card3d, 'animate');
-                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
-                }
-
-                // Atualiza os dados no objeto local
-                cardData.attributes.vidaAtual = newLife;
-                cardData.attributes.manaAtual = newMana;
-                cardData.dinheiro = newMoney;
-
-                // Salva os dados localmente no IndexedDB (isso sempre acontece)
-                await saveData(CARD_STORE_NAME, cardData);
-
-                // ---> INÍCIO DA MODIFICAÇÃO <---
-                // VERIFICA SE O CARD ESTÁ NA MESA ANTES DE SINCRONIZAR COM O FIREBASE
-                if (charactersOnTableIds.has(currentStatusEditingCardId)) {
-                    // Prepara os dados para enviar ao Firebase
-                    const updatesForTable = {
-                        currentLife: newLife,
-                        currentMana: newMana,
-                        money: newMoney
-                    };
-                    // Chama a função para sincronizar com a mesa
-                    await updateCharacterOnTable(currentStatusEditingCardId, updatesForTable);
-                }
-                // ---> FIM DA MODIFICAÇÃO <---
-
+        if (newLife !== oldLife) {
+            if (newLife < oldLife) {
+                triggerCardPunch(card3d);
+            } else {
+                triggerCardLifeIn(card3d, vidaIcon);
+            }
+        }
+        if (newMana !== oldMana) {
+            playMp3Sound('mana.mp3');
+            if (newMana < oldMana) {
+                createManaMist(manaIcon, 'out', '#1a1a1a');
+                card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+            } else {
+                createManaMist(manaIcon, 'in', '#a78bfa');
+                card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                createRuneEffect(card3d);
                 setTimeout(() => {
-                    updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
-                    updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
-                }, animationDuration);
+                    const rune = card3d.querySelector('.rune-container');
+                    if (rune) rune.remove();
+                }, 2500);
+            }
+        }
+        if (newMoney !== oldMoney) {
+            playMp3Sound('money.mp3');
+            const direction = newMoney > oldMoney ? 'in' : 'out';
+            createManaMist(moneyIcon, direction, '#fcd34d');
+            card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+        }
+        triggerAnimation(card3d, 'animate');
+        animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
+        animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
+        animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
+    }
 
-                statusModal.classList.add('hidden');
-                currentStatusEditingCardId = null;
-            });
+    // Fecha o modal imediatamente
+    statusModal.classList.add('hidden');
 
-            statusForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentStatusEditingCardId) return;
-                const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
-                if (!cardData) return;
+    // 2. Espera as animações terminarem (a mais longa é 2500ms) antes de salvar
+    setTimeout(async () => {
+        // Atualiza os dados no objeto local
+        cardData.attributes.vidaAtual = newLife;
+        cardData.attributes.manaAtual = newMana;
+        cardData.dinheiro = newMoney;
 
-                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
-                const animationDuration = 500;
-                const oldLife = cardData.attributes.vidaAtual;
-                const oldMana = cardData.attributes.manaAtual;
-                const oldMoney = cardData.dinheiro;
-                const newLife = parseInt(modalVidaAtualInput.value);
-                const newMana = parseInt(modalManaAtualInput.value);
-                const newMoney = parseInt(modalDinheiroInput.value);
+        // Salva os dados localmente no IndexedDB
+        await saveData(CARD_STORE_NAME, cardData);
 
-                if (cardOnScreen) {
-                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
-                    const manaIcon = cardOnScreen.querySelector('.potion-container');
-                    const moneyIcon = cardOnScreen.querySelector('.money-container');
-                    const card3d = cardOnScreen.querySelector('.nebula-sky');
-                    resetcard3d(card3d);
-                    if (newLife !== oldLife) {
-                        if (newLife < oldLife) {
-                            triggerCardPunch(card3d);
-                        }
-                        if (newLife > oldLife) {
-                            triggerCardLifeIn(card3d, vidaIcon);
-                        }
-                    }
-                    if (newMana !== oldMana) {
-                        playMp3Sound('mana.mp3');
-                        if (newMana < oldMana) {
-                            createManaMist(manaIcon, 'out', '#1a1a1a');
-                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                        }
-                        if (newMana > oldMana) {
-                            createManaMist(manaIcon, 'in', '#a78bfa');
-                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                            createRuneEffect(card3d);
-                            setTimeout(() => {
-                                const rune = card3d.querySelector('.rune-container');
-                                if (rune) {
-                                    rune.remove();
-                                }
-                            }, 2500);
-                        }
-                    }
-                    if (newMoney !== oldMoney) {
-                        playMp3Sound('money.mp3');
-                        if (newMoney > oldMoney) {
-                            createManaMist(moneyIcon, 'in', '#fcd34d');
-                        }
-                        if (newMoney < oldMoney) {
-                            createManaMist(moneyIcon, 'out', '#fcd34d');
-                        }
-                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-                    }
-                    triggerAnimation(card3d, 'animate');
-                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
-                }
-                cardData.attributes.vidaAtual = newLife;
-                cardData.attributes.manaAtual = newMana;
-                cardData.dinheiro = newMoney;
-                await saveData(CARD_STORE_NAME, cardData);
-                setTimeout(() => {
-                    updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
-                    updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
-                }, animationDuration);
-                statusModal.classList.add('hidden');
-                currentStatusEditingCardId = null;
-            });
+        // VERIFICA SE O CARD ESTÁ NA MESA ANTES DE SINCRONIZAR COM O FIREBASE
+        if (charactersOnTableIds.has(currentStatusEditingCardId)) {
+            const updatesForTable = {
+                currentLife: newLife,
+                currentMana: newMana,
+                money: newMoney
+            };
+            // Chama a função para sincronizar com a mesa
+            await updateCharacterOnTable(currentStatusEditingCardId, updatesForTable);
+        }
+
+        // Atualiza as barras de status após a animação dos números
+        updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
+        updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
+
+        currentStatusEditingCardId = null;
+    }, 2600); // Atraso de 2.6 segundos
+});
+          
             statusModalCloseBtn.addEventListener('click', () => {
                 statusModal.classList.add('hidden');
                 currentStatusEditingCardId = null;
@@ -4567,7 +4495,7 @@ async function removeCharacterFromTable(charId) {
                 jsonImportInput.click();
             }
 
-          jsonImportInput.addEventListener('change', (e) => {
+            jsonImportInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file || !currentStoreForImport) return;
 
@@ -4582,14 +4510,14 @@ async function removeCharacterFromTable(charId) {
 
                         // Lógica aprimorada para importação de backup completo
                         if (currentStoreForImport === 'full_database') {
-                            
+
                             // 1. Criar mapas para relacionar IDs antigos com novos
                             const idMaps = {
                                 [CARD_STORE_NAME]: new Map(),
                                 [SPELL_STORE_NAME]: new Map(),
                                 [ITEM_STORE_NAME]: new Map()
                             };
-                            
+
                             const generateNewId = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
 
                             // Preenche os mapas com novos IDs para cada item do backup
@@ -4602,14 +4530,14 @@ async function removeCharacterFromTable(charId) {
                             }
 
                             // 2. Processar e remapear os dados antes de salvar
-                            
+
                             // Itens e Magias (não têm dependências)
                             for (const storeName of [ITEM_STORE_NAME, SPELL_STORE_NAME]) {
                                 if (importedData[storeName]) {
                                     for (const item of importedData[storeName]) {
                                         const oldId = item.id;
                                         item.id = idMaps[storeName].get(oldId); // Atualiza o ID do próprio item
-                                        
+
                                         // Converte imagens de Base64 de volta para ArrayBuffer
                                         if (item.imageBase64) {
                                             item.image = base64ToArrayBuffer(item.imageBase64);
@@ -4619,7 +4547,7 @@ async function removeCharacterFromTable(charId) {
                                             item.backgroundImage = base64ToArrayBuffer(item.backgroundImageBase64);
                                             delete item.backgroundImageBase64;
                                         }
-                                        
+
                                         await saveData(storeName, item);
                                     }
                                 }
@@ -4644,7 +4572,7 @@ async function removeCharacterFromTable(charId) {
                                             .map(oldSpellId => idMaps[SPELL_STORE_NAME].get(oldSpellId))
                                             .filter(Boolean);
                                     }
-                                    
+
                                     // Converte imagens
                                     if (char.imageBase64) {
                                         char.image = base64ToArrayBuffer(char.imageBase64);
@@ -4908,81 +4836,145 @@ async function removeCharacterFromTable(charId) {
                 buyModal.classList.remove('hidden');
             }
 
-            function initializeNebulaEffect(container) {
-                if (!container) return; // Segurança extra
+           /**
+ * Inicializa o efeito de paralaxe 3D para um contêiner de card,
+ * adicionando controle tanto por mouse/toque quanto pelo acelerômetro do dispositivo.
+ * @param {HTMLElement} container - O elemento .nebula-sky que contém as camadas do efeito.
+ */
+function initializeNebulaEffect(container) {
+    if (!container) return;
 
-                const starsFar = container.querySelector('#stars-far');
-                const starsMedium = container.querySelector('#stars-medium');
-                const starsNear = container.querySelector('#stars-near');
-                const glow = container.querySelector('#glow-overlay');
-                const txtItem = container.querySelector('#txtItem');
-                const txtMagia = container.querySelector('#txtMagia');
+    // Seleciona todos os elementos necessários para a animação
+    const starsFar = container.querySelector('#stars-far');
+    const starsMedium = container.querySelector('#stars-medium');
+    const starsNear = container.querySelector('#stars-near');
+    const glow = container.querySelector('#glow-overlay');
+    const txtItem = container.querySelector('#txtItem');
+    const txtMagia = container.querySelector('#txtMagia');
 
+    // Validação para garantir que todos os elementos internos existem
+    if (!starsFar || !starsMedium || !starsNear || !glow) {
+        console.error("Elementos essenciais para o efeito de nebulosa não foram encontrados.");
+        return;
+    }
 
-                // Garante que os elementos filhos foram encontrados antes de continuar
-                if (!starsFar || !starsMedium || !starsNear || !glow) {
-                    console.error("Elementos do efeito de nebulosa não encontrados dentro do container.");
-                    return;
-                }
+    const maxRotate = 20; // Rotação máxima do card em graus
+    let isInteracting = false; // Flag para desativar o acelerômetro durante o arrastar manual
 
-                const maxRotate = 20;
-                const factorFar = 0.02;
-                const factorMedium = 0.04;
-                const factorNear = 0.06;
-                let isInteracting = false;
+    // --- Lógica de Mouse e Toque (Arrastar) ---
+    const factorFar = 0.02;
+    const factorMedium = 0.04;
+    const factorNear = 0.06;
 
-                const updateLayers = (x, y) => {
-                    const rotateY = (x / (container.offsetWidth / 2)) * maxRotate;
-                    const rotateX = -(y / (container.offsetHeight / 2)) * maxRotate;
-                    container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                    starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
-                    starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
-                    // Check if the elements exist before applying styles
-                    if (txtItem) txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-                    if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-                
-                    starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+    // Função que atualiza a rotação e a posição das camadas com base nas coordenadas
+    const updateLayers = (x, y) => {
+        const rotateY = (x / (container.offsetWidth / 2)) * maxRotate;
+        const rotateX = -(y / (container.offsetHeight / 2)) * maxRotate;
+        container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
+        starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
+        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+        starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+    };
 
-                };
+    const startInteraction = () => { isInteracting = true; container.style.transition = 'transform 0.1s linear'; };
+    const moveInteraction = (e) => {
+        if (!isInteracting) return;
+        e.preventDefault();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const rect = container.getBoundingClientRect();
+        const x = clientX - rect.left - rect.width / 2;
+        const y = clientY - rect.top - rect.height / 2;
+        updateLayers(x, y);
+    };
+    
+    // --- FUNÇÃO ATUALIZADA ---
+    // Agora, esta função reseta a posição do card ao soltar o mouse/toque.
+    const endInteraction = () => {
+        isInteracting = false;
+        container.style.transition = 'transform 0.4s ease-out';
+        
+        // Reseta a rotação do card principal para a posição neutra
+        container.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        
+        // Reseta a posição das camadas internas para o centro
+        starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
+        starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
+        starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
+        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(0px, 0px)`;
+        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(0px, 0px)`;
+    };
 
-                const startInteraction = (e) => {
-                    isInteracting = true;
-                    container.style.transition = 'transform 0.1s linear';
-                };
+    // Adiciona os listeners para mouse e toque
+    container.addEventListener('mousedown', startInteraction);
+    container.addEventListener('mousemove', moveInteraction);
+    container.addEventListener('mouseup', endInteraction);
+    container.addEventListener('mouseleave', endInteraction);
+    container.addEventListener('touchstart', startInteraction);
+    container.addEventListener('touchmove', moveInteraction);
+    container.addEventListener('touchend', endInteraction);
+    container.addEventListener('touchcancel', endInteraction);
 
-                const moveInteraction = (e) => {
-                    if (!isInteracting) return;
-                    e.preventDefault();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    const rect = container.getBoundingClientRect();
-                    const x = clientX - rect.left - rect.width / 2;
-                    const y = clientY - rect.top - rect.height / 2;
-                    //glow.style.background = `radial-gradient(circle at ${clientX - rect.left}px ${clientY - rect.top}px, rgba(255,255,255,0.15), transparent 40%)`;
-                    updateLayers(x, y);
-                };
+    // --- Lógica do Acelerômetro (Inclinação) ---
+    const handleOrientation = (event) => {
+        if (isInteracting) return; // Não executa se o usuário estiver arrastando o card
 
-                const endInteraction = () => {
-                    isInteracting = false;
-                    container.style.transition = 'transform 0.4s ease-out';
-                    container.style.transform = `rotateX(0deg) rotateY(0deg)`;
-                    starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
-                    starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
-                    starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
-                    if (txtItem) txtItem.style.transform = `translateZ(0px) translate(0px, 0px)`;
-                    if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(0px, 0px)`;
-                };
+        const gamma = event.gamma; // Inclinação esquerda/direita (-90 a 90)
+        const beta = event.beta;   // Inclinação frente/trás (-180 a 180)
 
-                // Adiciona os eventos
-                container.addEventListener('mousedown', startInteraction);
-                container.addEventListener('mousemove', moveInteraction);
-                container.addEventListener('mouseup', endInteraction);
-                container.addEventListener('mouseleave', endInteraction);
-                container.addEventListener('touchstart', startInteraction);
-                container.addEventListener('touchmove', moveInteraction);
-                container.addEventListener('touchend', endInteraction);
-                container.addEventListener('touchcancel', endInteraction);
-            }
+        // Limita os valores de inclinação para um movimento mais suave e controlado
+        const clampedGamma = Math.max(-45, Math.min(45, gamma));
+        const clampedBeta = Math.max(-45, Math.min(45, beta));
+
+        // Converte a inclinação em rotação para o card
+        const rotateY = (clampedGamma / 45) * maxRotate;
+        const rotateX = (clampedBeta / 45) * -maxRotate;
+        
+        container.style.transition = 'transform 0.1s linear'; // Transição rápida para responsividade
+        container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        
+        // Movimenta as camadas internas com base na inclinação para criar o efeito 3D
+        const x = (clampedGamma / 45) * (container.offsetWidth / 4);
+        const y = (clampedBeta / 45) * (container.offsetHeight / 4);
+        starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
+        starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
+        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+        starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+    };
+
+    // Verifica se o navegador suporta o evento e lida com as permissões necessárias
+    if (window.DeviceOrientationEvent) {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iOS 13+ requer um clique do usuário para pedir permissão
+            const permissionButton = document.createElement('button');
+            permissionButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Ativar Controle por Movimento';
+            permissionButton.className = 'permission-button';
+            
+            container.appendChild(permissionButton);
+
+            permissionButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Impede que o clique no botão ative outros eventos do card
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            permissionButton.remove();
+                        } else {
+                            alert('Permissão para usar sensores de movimento foi negada.');
+                            permissionButton.remove();
+                        }
+                    })
+                    .catch(console.error);
+            });
+        } else {
+            // Outros navegadores (como Chrome no Android) não precisam de permissão explícita
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+    }
+}
 
             async function updateCharacterOnTable(charId, updates) {
                 // As constantes 'database', 'ref', e 'update' já são importadas do Firebase
@@ -5003,27 +4995,31 @@ async function removeCharacterFromTable(charId) {
                 }
             }
             // --- FIX ENDS HERE ---
-
+            var IsMesa = false;
             // --- ADICIONE ESTA NOVA FUNÇÃO ---
-function updateSendToTableButtonState(charId) {
-    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-    if (!cardOnScreen) return;
+            function updateSendToTableButtonState(charId) {
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+                if (!cardOnScreen) return;
 
-    const sendBtn = cardOnScreen.querySelector('#send-to-table-btn');
-    if (!sendBtn) return;
+                const sendBtn = cardOnScreen.querySelector('#send-to-table-btn');
+                if (!sendBtn) return;
 
-    // Se o ID do personagem está na nossa lista da mesa
-    if (charactersOnTableIds.has(charId)) {
-        sendBtn.innerHTML = '<i class="fas fa-sign-out-alt" style="font-size: 25px;"></i>';
-        sendBtn.title = "Remover da Mesa";
-        sendBtn.classList.add('on-table'); // Classe para lógica e estilo
-    } else {
-        sendBtn.innerHTML = '<i class="fas fa-dungeon" style="font-size: 25px;"></i>';
-        sendBtn.title = "Enviar para a Mesa";
-        sendBtn.classList.remove('on-table');
-    }
-}
-// --- FIM DA NOVA FUNÇÃO ---
+                // Se o ID do personagem está na nossa lista da mesa
+                if (charactersOnTableIds.has(charId)) {
+                    sendBtn.innerHTML = '<i class="fas fa-sign-out-alt" style="font-size: 25px;"></i>';
+                    sendBtn.title = "Remover da Mesa";
+                    sendBtn.classList.add('on-table'); // Classe para lógica e estilo
+                    IsMesa = true;
+                    console.log(IsMesa);
+                } else {
+                    sendBtn.innerHTML = '<i class="fas fa-dungeon" style="font-size: 25px;"></i>';
+                    sendBtn.title = "Enviar para a Mesa";
+                    sendBtn.classList.remove('on-table');
+                    IsMesa = false;
+                    console.log(IsMesa);
+                }
+            }
+            // --- FIM DA NOVA FUNÇÃO ---
         });
     </script>
 </body>
