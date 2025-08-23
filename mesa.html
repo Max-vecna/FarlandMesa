@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mesa de RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+
+        .game-card {
+            background-color: #1f2937;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-bar-bg {
+            background-color: #374151;
+        }
+
+        .stat-bar {
+            transition: width 0.5s ease-in-out;
+        }
+
+        .life-bar {
+            background-color: #ef4444;
+        }
+
+        .mana-bar {
+            background-color: #3b82f6;
+        }
+
+        .cs
+        {
+            background: url(backItens.png); background-size: cover; background-position-y: center;
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+
+    <div class="container mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-indigo-400">Mesa de Jogo</h1>
+
+        <div id="game-table"
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        </div>
+    </div>
+
+    <div id="status-modal"
+        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-xl font-bold text-indigo-300">Alterar Status</h3>
+                <button id="modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+            <form id="status-form" class="space-y-4">
+                <input type="hidden" id="modal-char-id">
+                <input type="hidden" id="modal-stat-name">
+                <input type="hidden" id="modal-current-value">
+                <div>
+                    <label for="modal-change-value" class="block text-sm font-semibold mb-1">Valor a Adicionar /
+                        Subtrair</label>
+                    <p class="text-xs text-gray-400 mb-2">Use valores positivos para adicionar (ex: 10) e negativos para
+                        subtrair (ex: -15).</p>
+                    <input type="number" id="modal-change-value" placeholder="Ex: -10" required
+                        class="w-full text-center px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <button type="submit"
+                    class="w-full py-2 px-4 rounded-full font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                    Aplicar Alteração
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        // Todo o seu código Javascript continua aqui, sem alterações necessárias.
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // MODIFICADO: Adicionado 'update'
+        import { getDatabase, ref, onValue, set, remove, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSFhUNp0weU09S13kZmUd0-J50-eHW1YU",
+            authDomain: "farland-cards.firebaseapp.com",
+            projectId: "farland-cards",
+            storageBucket: "farland-cards.appspot.com",
+            messagingSenderId: "347739610452",
+            appId: "1:347739610452:web:d3b172dea431944365fcc1",
+            measurementId: "G-8T74ETC4GV",
+            databaseURL: "https://farland-cards-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const statusModal = document.getElementById('status-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const statusForm = document.getElementById('status-form');
+        const modalCharIdInput = document.getElementById('modal-char-id');
+        const modalStatNameInput = document.getElementById('modal-stat-name');
+        const modalCurrentValueInput = document.getElementById('modal-current-value');
+        const modalChangeValueInput = document.getElementById('modal-change-value');
+
+        function openStatModal(charId, statName, currentValue) {
+            modalTitle.textContent = `Alterar ${statName.replace('current', '')}`;
+            modalCharIdInput.value = charId;
+            modalStatNameInput.value = statName;
+            modalCurrentValueInput.value = currentValue;
+            modalChangeValueInput.value = '';
+            modalChangeValueInput.focus();
+            statusModal.classList.remove('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', () => statusModal.classList.add('hidden'));
+        statusForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const charId = modalCharIdInput.value;
+            const statName = modalStatNameInput.value;
+            const amount = parseInt(modalChangeValueInput.value);
+            if (!charId || !statName || isNaN(amount)) { return; }
+            updateCharacterStat(charId, statName, amount);
+            statusModal.classList.add('hidden');
+        });
+
+        const tableContainer = document.getElementById('game-table');
+        const tableRef = ref(database, 'gameTables/default-table/characters');
+
+        onValue(tableRef, (snapshot) => {
+            const characters = snapshot.val();
+            renderTable(characters);
+        });
+
+        function renderTable(characters) {
+            tableContainer.innerHTML = '';
+            if (!characters) {
+                tableContainer.innerHTML = '<p class="col-span-full text-center text-gray-500">Nenhum personagem na mesa.</p>';
+                return;
+            }
+            for (const charId in characters) {
+                const charData = characters[charId];
+                const cardElement = createPlayerCard(charData);
+                tableContainer.appendChild(cardElement);
+            }
+        }
+
+        function createPlayerCard(charData) {
+            const card = document.createElement('div');
+            card.className = 'cs game-card rounded-lg shadow-md p-4 flex flex-col items-center border border-slate-700 hover:border-indigo-500 transition-colors';
+            card.dataset.id = charData.id;
+
+            const lifePercent = (charData.currentLife / charData.maxLife) * 100;
+            const manaPercent = (charData.currentMana / charData.maxMana) * 100;
+
+            card.innerHTML = `
+                <div class="mb-2 text-center">
+                    <h2 class="text-xl font-semibold text-slate-200 truncate">${charData.name}</h2>
+                    <div class="text-sm text-slate-300 italic">Personagem</div>
+                </div>
+
+                <div class="w-full mb-6 stat-container cursor-pointer" data-stat-name="currentLife" data-current-value="${charData.currentLife}">
+                    <div class="flex items-center justify-between text-sm px-1">
+                        <div class="flex items-center gap-2 text-red-400">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <span class="font-mono text-slate-300">${charData.currentLife} / ${charData.maxLife}</span>
+                    </div>
+                    <div class="stat-bar-bg rounded-full h-2 bg-slate-600"><div class="stat-bar life-bar h-2 rounded-full bg-red-500" style="width: ${lifePercent}%;"></div></div>
+                </div>
+
+                <div class="w-full mb-6 stat-container cursor-pointer" data-stat-name="currentMana" data-current-value="${charData.currentMana}">
+                    <div class="flex items-center justify-between text-sm px-1">
+                        <div class="flex items-center gap-2 text-blue-400">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <span class="font-mono text-slate-300">${charData.currentMana} / ${charData.maxMana}</span>
+                    </div>
+                    <div class="stat-bar-bg rounded-full h-2 bg-slate-600"><div class="stat-bar mana-bar h-2 rounded-full bg-blue-500" style="width: ${manaPercent}%;"></div></div>
+                </div>
+
+                <div class="w-full text-center stat-container cursor-pointer" data-stat-name="money" data-current-value="${charData.money}">
+                    <div class="flex items-center justify-center gap-2 text-amber-300">
+                        <i class="fas fa-coins"></i>
+                        <span class="font-bold font-mono text-lg text-slate-200">${charData.money}</span>
+                    </div>
+                </div>
+            `;
+
+            card.querySelectorAll('.stat-container').forEach(container => {
+                container.addEventListener('click', () => {
+                    const statName = container.dataset.statName;
+                    const currentValue = container.dataset.currentValue;
+                    openStatModal(charData.id, statName, currentValue);
+                });
+            });
+
+            return card;
+        }
+
+        function updateCharacterStat(charId, stat, amount) {
+            const charRef = ref(database, `gameTables/default-table/characters/${charId}`);
+            runTransaction(charRef, (character) => {
+                if (character) {
+                    if (stat === 'currentLife' || stat === 'currentMana' || stat === 'money') {
+                        character[stat] = (character[stat] || 0) + amount;
+                        if (stat === 'currentLife') { character[stat] = Math.max(0, Math.min(character[stat], character.maxLife)); }
+                        if (stat === 'currentMana') { character[stat] = Math.max(0, Math.min(character[stat], character.maxMana)); }
+                        if (stat === 'money') { character[stat] = Math.max(0, character[stat]); }
+                    }
+                }
+                return character;
+            });
+        }
+    </script>
+</body>
+
+</html>
