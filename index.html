@@ -3396,7 +3396,7 @@ async function removeCharacterFromTable(charId) {
                             <div id="milky-way"></div>
                         </div>
                         <div id="glow-overlay"></div>
-                                <div class="rounded-3xl 
+                                <div class="rounded-3xl  id="txtItem"
                                 relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
                                 <div class="text-center w-full">
                                     <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
@@ -4850,6 +4850,7 @@ async function removeCharacterFromTable(charId) {
                 const starsMedium = container.querySelector('#stars-medium');
                 const starsNear = container.querySelector('#stars-near');
                 const glow = container.querySelector('#glow-overlay');
+const txtItem = container.querySelector('#txtItem');
 
 
                 // Garante que os elementos filhos foram encontrados antes de continuar
@@ -4871,6 +4872,8 @@ async function removeCharacterFromTable(charId) {
                     starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
                     starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
                     starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+                    txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+
 
                 };
 
@@ -4897,6 +4900,8 @@ async function removeCharacterFromTable(charId) {
                     container.style.transform = `rotateX(0deg) rotateY(0deg)`;
                     starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
                     starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
+txtItem.style.transform = `translateZ(-20px) translate(0px, 0px)`;
+
                     starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
                 };
 
@@ -4957,3 +4962,4 @@ function updateSendToTableButtonState(charId) {
 
 
 </html>
+
