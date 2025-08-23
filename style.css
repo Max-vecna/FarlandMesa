@@ -336,7 +336,7 @@
             font-size: 11px !important; width: 30px; height: 30px; display: flex;            
             align-items: center; justify-content: center; transform: scale(0.8);
         }
-        #thumbnail-list, #spell-thumbnail-list, #item-thumbnail-list {
+        #thumbnail-list, #spell-thumbnail-list, #item-thumbnail-list, #spell-thumbnail-list-hab {
             min-height: 7rem;
             max-height: 8rem; overflow-y: hidden; overflow-x: auto; display: flex; flex-direction: row;
             flex-wrap: nowrap; justify-content: flex-start; align-items: center;

@@ -43,7 +43,7 @@
 
         .cs
         {
-            background: url(backItens.png); background-size: cover; background-position-y: center;
+            background: url(fundo.png); background-size: cover; background-position-y: center;
         }
     </style>
 </head>
@@ -53,7 +53,7 @@
     <div class="container mx-auto">
         <h1 class="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-indigo-400">Mesa de Jogo</h1>
 
-        <div id="game-table"
+        <div id="game-table" style="display: flex;" 
             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
         </div>
     </div>
@@ -159,6 +159,7 @@
             const card = document.createElement('div');
             card.className = 'cs game-card rounded-lg shadow-md p-4 flex flex-col items-center border border-slate-700 hover:border-indigo-500 transition-colors relative';
             card.dataset.id = charData.id;
+            card.style.width = "50%";
 
             const lifePercent = (charData.currentLife / charData.maxLife) * 100;
             const manaPercent = (charData.currentMana / charData.maxMana) * 100;
