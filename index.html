@@ -1331,6 +1331,10 @@
             const takeCardPreview = document.getElementById('take-card-preview');
             const takeCardName = document.getElementById('take-card-name');
 
+            // --- ADICIONE ESTA LINHA ---
+            let charactersOnTableIds = new Set();
+            // --- FIM DA LINHA ADICIONADA ---
+
             let currentCardToShare = null;
 
 
@@ -2575,6 +2579,10 @@
                 await updateSidebarsContent(cardElement.querySelector('.rpg-card'), cardId);
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
+
+                 // --- ADICIONE ESTA LINHA ---
+    updateSendToTableButtonState(cardId); 
+    // --- FIM DA LINHA ADICIONADA ---
             }
             async function createCardElement(cardData) {
                 const cardWrapper = document.createElement('div');
@@ -2696,9 +2704,9 @@
                                         <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p>
                                     </div>
                                     <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
-                                    <button id="send-to-table-btn" class="py-2 px-4 mt-3 rounded-full text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 z-10">
-    <i class="fas fa-dungeon"></i> Enviar para a Mesa
-</button>
+                                    <button id="send-to-table-btn" data-action="send-to-table" class="py-2 px-4 mt-3 rounded-full text-sm font-bold text-white transition-colors flex items-center gap-2 z-10">
+                                        <i class="fas fa-dungeon" style="font-size: 25px;"></i>
+                                    </button>
                                     <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
                                         <div class="grid grid-cols-5 gap-x-4 gap-y-1 text-xs my-2 mb-4">
                                             <div class="text-center">CA<br>${cardData.attributes.armadura || 0}</div>
@@ -2787,15 +2795,41 @@
 
                 // No seu arquivo index.html, encontre esta função e modifique-a
 
-                document.addEventListener('click', async (e) => {
-                    // Verifica se o botão "Enviar para a Mesa" foi clicado
-                    if (e.target.id === 'send-to-table-btn' || e.target.closest('#send-to-table-btn')) {
-                        const cardElement = e.target.closest('.rpg-card');
-                        if (!cardElement) return;
-                        seddManalife(cardElement.dataset.cardId)
+               // --- ADICIONE ESTE NOVO BLOCO ---
+document.addEventListener('click', async (e) => {
+    const sendToTableBtn = e.target.closest('#send-to-table-btn');
+    if (sendToTableBtn) {
+        const cardElement = sendToTableBtn.closest('.rpg-card');
+        if (!cardElement) return;
 
-                    }
-                });
+        const charId = cardElement.dataset.cardId;
+
+        // Verifica se tem a classe 'on-table' para decidir a ação
+        if (sendToTableBtn.classList.contains('on-table')) {
+            // Se sim, remove o personagem
+            if (confirm('Tem certeza que deseja remover este personagem da mesa?')) {
+                await removeCharacterFromTable(charId);
+            }
+        } else {
+            // Se não, envia o personagem (função que já existia)
+            await seddManalife(charId);
+        }
+    }
+});
+
+// Função para remover do Firebase a partir do index.html
+async function removeCharacterFromTable(charId) {
+    const { database, ref, remove } = window.firebaseDB;
+    const tableRef = ref(database, `gameTables/default-table/characters/${charId}`);
+    try {
+        await remove(tableRef);
+        showCustomAlert("Removido!", 'success');
+    } catch (error) {
+        console.error("Erro ao remover da mesa:", error);
+        showCustomAlert("Falha ao remover o personagem da mesa.");
+    }
+}
+// --- FIM DO NOVO BLOCO ---
 
                 async function seddManalife(cardId) {
                     const characterData = await getData(CARD_STORE_NAME, cardId);
@@ -2830,7 +2864,7 @@
                     // 4. Envia os dados
                     try {
                         await set(tableRef, dataForTable);
-                        showCustomAlert(`"${characterData.title}" enviado para a mesa!`, 'success');
+                        showCustomAlert(`enviado`, 'success');
                     } catch (error) {
                         console.error("Erro ao enviar para a mesa:", error);
                         showCustomAlert("Falha ao conectar com a mesa.");
@@ -2872,94 +2906,107 @@
              * Inicia a escuta por atualizações na mesa de jogo do Firebase
              * e sincroniza os dados de volta para o IndexedDB local.
              */
-            function listenForTableUpdates() {
-                const { database, ref, onValue } = window.firebaseDB;
-                const tableRef = ref(database, 'gameTables/default-table/characters');
+          function listenForTableUpdates() {
+        const {
+            database,
+            ref,
+            onValue
+        } = window.firebaseDB;
+        const tableRef = ref(database, 'gameTables/default-table/characters');
 
-                // onValue fica monitorando o 'nó' de personagens na mesa
-                onValue(tableRef, async (snapshot) => {
-                    const charactersOnTable = snapshot.val();
-                    if (!charactersOnTable) return; // Se não há personagens, não faz nada
+        // onValue fica monitorando o 'nó' de personagens na mesa
+        onValue(tableRef, async (snapshot) => {
+            // CORREÇÃO: Garante que 'charactersOnTable' seja um objeto vazio ({}) se o snapshot for nulo (vazio).
+            const charactersOnTable = snapshot.val() || {};
 
-                    // Itera sobre cada personagem que está na mesa
-                    for (const charId in charactersOnTable) {
-                        const tableData = charactersOnTable[charId];
+            // Atualiza nosso rastreador global com os IDs dos personagens na mesa.
+            // Se 'charactersOnTable' for {}, 'Object.keys' retornará um array vazio, limpando o rastreador corretamente.
+            charactersOnTableIds = new Set(Object.keys(charactersOnTable));
 
-                        // 1. Tenta buscar o personagem correspondente no banco de dados local
-                        const localCharData = await getData(CARD_STORE_NAME, charId);
-
-                        // Se o personagem existe localmente, prossegue com a sincronização
-                        if (localCharData) {
-                            let needsUpdate = false;
-                            const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                            const vidaIcon = cardOnScreen.querySelector('.heart-container');
-                            const manaIcon = cardOnScreen.querySelector('.potion-container');
-                            const moneyIcon = cardOnScreen.querySelector('.money-container');
-                            const card3d = cardOnScreen.querySelector('.nebula-sky');
-                            resetcard3d(card3d);                // 2. Compara os valores e marca se precisa de atualização
-                            if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
-                                if (tableData.currentLife < localCharData.attributes.vidaAtual) {
-                                    triggerCardPunch(card3d);
-                                }
-                                if (tableData.currentLife > localCharData.attributes.vidaAtual) {
-                                    triggerCardLifeIn(card3d, vidaIcon);
-                                }
-                                localCharData.attributes.vidaAtual = tableData.currentLife;
-                                needsUpdate = true;
-                            }
-                            if (localCharData.attributes.manaAtual !== tableData.currentMana) {
-                                playMp3Sound('mana.mp3');
-                                if (localCharData.attributes.manaAtual > tableData.currentMana) {
-                                    createManaMist(manaIcon, 'out', '#1a1a1a');
-                                    card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                                }
-                                if (localCharData.attributes.manaAtual < tableData.currentMana) {
-                                    createManaMist(manaIcon, 'in', '#a78bfa');
-                                    card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                                    createRuneEffect(card3d);
-                                    setTimeout(() => {
-                                        const rune = card3d.querySelector('.rune-container');
-                                        if (rune) {
-                                            rune.remove();
-                                        }
-                                    }, 2500);
-                                }
-
-                                localCharData.attributes.manaAtual = tableData.currentMana;
-                                needsUpdate = true;
-                            }
-                            if (localCharData.dinheiro !== tableData.money) {
-
-                                playMp3Sound('money.mp3');
-                                if (localCharData.dinheiro < tableData.money) {
-                                    createManaMist(moneyIcon, 'in', '#fcd34d');
-                                }
-                                if (localCharData.dinheiro > tableData.money) {
-                                    createManaMist(moneyIcon, 'out', '#fcd34d');
-                                }
-                                card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-
-                                localCharData.dinheiro = tableData.money;
-                                needsUpdate = true;
-                            }
-                            triggerAnimation(card3d, 'animate');
-                            // 3. Se algum valor mudou, salva no banco local e atualiza a UI
-                            if (needsUpdate) {
-                                await saveData(CARD_STORE_NAME, localCharData);
-                                console.log(`Personagem "${localCharData.title}" sincronizado da mesa.`);
-
-                                // 4. Verifica se o card atualizado é o que está sendo exibido na tela
-                                const displayedCardElement = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                                if (displayedCardElement) {
-                                    // Se sim, atualiza os valores na interface gráfica
-                                    updateCardUI(charId, tableData);
-                                }
-                            }
-                        }
-                    }
-                });
+            // Verifica se um card está sendo exibido e atualiza o estado do seu botão
+            const displayedCardElement = document.querySelector('.rpg-card[data-card-id]');
+            if (displayedCardElement) {
+                updateSendToTableButtonState(displayedCardElement.dataset.cardId);
             }
 
+            // Itera sobre cada personagem que está na mesa para sincronizar
+            for (const charId in charactersOnTable) {
+                const tableData = charactersOnTable[charId];
+
+                // 1. Tenta buscar o personagem correspondente no banco de dados local
+                const localCharData = await getData(CARD_STORE_NAME, charId);
+
+                // Se o personagem existe localmente, prossegue com a sincronização
+                if (localCharData) {
+                    let needsUpdate = false;
+                    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
+                    const manaIcon = cardOnScreen.querySelector('.potion-container');
+                    const moneyIcon = cardOnScreen.querySelector('.money-container');
+                    const card3d = cardOnScreen.querySelector('.nebula-sky');
+                    resetcard3d(card3d); // 2. Compara os valores e marca se precisa de atualização
+                    if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
+                        if (tableData.currentLife < localCharData.attributes.vidaAtual) {
+                            triggerCardPunch(card3d);
+                        }
+                        if (tableData.currentLife > localCharData.attributes.vidaAtual) {
+                            triggerCardLifeIn(card3d, vidaIcon);
+                        }
+                        localCharData.attributes.vidaAtual = tableData.currentLife;
+                        needsUpdate = true;
+                    }
+                    if (localCharData.attributes.manaAtual !== tableData.currentMana) {
+                        playMp3Sound('mana.mp3');
+                        if (localCharData.attributes.manaAtual > tableData.currentMana) {
+                            createManaMist(manaIcon, 'out', '#1a1a1a');
+                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+                        }
+                        if (localCharData.attributes.manaAtual < tableData.currentMana) {
+                            createManaMist(manaIcon, 'in', '#a78bfa');
+                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                            createRuneEffect(card3d);
+                            setTimeout(() => {
+                                const rune = card3d.querySelector('.rune-container');
+                                if (rune) {
+                                    rune.remove();
+                                }
+                            }, 2500);
+                        }
+
+                        localCharData.attributes.manaAtual = tableData.currentMana;
+                        needsUpdate = true;
+                    }
+                    if (localCharData.dinheiro !== tableData.money) {
+
+                        playMp3Sound('money.mp3');
+                        if (localCharData.dinheiro < tableData.money) {
+                            createManaMist(moneyIcon, 'in', '#fcd34d');
+                        }
+                        if (localCharData.dinheiro > tableData.money) {
+                            createManaMist(moneyIcon, 'out', '#fcd34d');
+                        }
+                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+
+                        localCharData.dinheiro = tableData.money;
+                        needsUpdate = true;
+                    }
+                    triggerAnimation(card3d, 'animate');
+                    // 3. Se algum valor mudou, salva no banco local e atualiza a UI
+                    if (needsUpdate) {
+                        await saveData(CARD_STORE_NAME, localCharData);
+                        console.log(`Personagem "${localCharData.title}" sincronizado da mesa.`);
+
+                        // 4. Verifica se o card atualizado é o que está sendo exibido na tela
+                        const displayedCardElement = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+                        if (displayedCardElement) {
+                            // Se sim, atualiza os valores na interface gráfica
+                            updateCardUI(charId, tableData);
+                        }
+                    }
+                }
+            }
+        });
+    }
             /**
              * Atualiza a interface gráfica de um card específico com novos dados.
              * @param {string} cardId - O ID do card a ser atualizado.
@@ -4884,6 +4931,27 @@
                 }
             }
             // --- FIX ENDS HERE ---
+
+            // --- ADICIONE ESTA NOVA FUNÇÃO ---
+function updateSendToTableButtonState(charId) {
+    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
+    if (!cardOnScreen) return;
+
+    const sendBtn = cardOnScreen.querySelector('#send-to-table-btn');
+    if (!sendBtn) return;
+
+    // Se o ID do personagem está na nossa lista da mesa
+    if (charactersOnTableIds.has(charId)) {
+        sendBtn.innerHTML = '<i class="fas fa-sign-out-alt" style="font-size: 25px;"></i>';
+        sendBtn.title = "Remover da Mesa";
+        sendBtn.classList.add('on-table'); // Classe para lógica e estilo
+    } else {
+        sendBtn.innerHTML = '<i class="fas fa-dungeon" style="font-size: 25px;"></i>';
+        sendBtn.title = "Enviar para a Mesa";
+        sendBtn.classList.remove('on-table');
+    }
+}
+// --- FIM DA NOVA FUNÇÃO ---
         });
     </script>
 </body>

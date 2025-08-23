@@ -74,7 +74,7 @@
                         Subtrair</label>
                     <p class="text-xs text-gray-400 mb-2">Use valores positivos para adicionar (ex: 10) e negativos para
                         subtrair (ex: -15).</p>
-                    <input type="number" id="modal-change-value" placeholder="Ex: -10" required
+                    <input type="text" id="modal-change-value" placeholder="Ex: -10" required
                         class="w-full text-center px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <button type="submit"
@@ -157,13 +157,16 @@
 
         function createPlayerCard(charData) {
             const card = document.createElement('div');
-            card.className = 'cs game-card rounded-lg shadow-md p-4 flex flex-col items-center border border-slate-700 hover:border-indigo-500 transition-colors';
+            card.className = 'cs game-card rounded-lg shadow-md p-4 flex flex-col items-center border border-slate-700 hover:border-indigo-500 transition-colors relative';
             card.dataset.id = charData.id;
 
             const lifePercent = (charData.currentLife / charData.maxLife) * 100;
             const manaPercent = (charData.currentMana / charData.maxMana) * 100;
 
             card.innerHTML = `
+                <button class="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors remove-char-btn" title="Remover da Mesa">
+                    <i class="fas fa-times-circle fa-lg"></i>
+                </button>
                 <div class="mb-2 text-center">
                     <h2 class="text-xl font-semibold text-slate-200 truncate">${charData.name}</h2>
                     <div class="text-sm text-slate-300 italic">Personagem</div>
@@ -197,6 +200,15 @@
                 </div>
             `;
 
+            // --- ADICIONE ESTE BLOCO ---
+            card.querySelector('.remove-char-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Impede que o modal de status abra ao clicar no X
+                if (confirm(`Tem certeza que deseja remover "${charData.name}" da mesa?`)) {
+                    removeCharacterFromTable(charData.id);
+                }
+            });
+            // --- FIM DO BLOCO ADICIONADO ---
+
             card.querySelectorAll('.stat-container').forEach(container => {
                 container.addEventListener('click', () => {
                     const statName = container.dataset.statName;
@@ -222,6 +234,16 @@
                 return character;
             });
         }
+
+        // --- ADICIONE ESTA NOVA FUNÇÃO ---
+        function removeCharacterFromTable(charId) {
+            const charRef = ref(database, `gameTables/default-table/characters/${charId}`);
+            remove(charRef).catch(error => {
+                console.error("Erro ao remover personagem:", error);
+                alert("Não foi possível remover o personagem da mesa.");
+            });
+        }
+        // --- FIM DA NOVA FUNÇÃO ---
     </script>
 </body>
 
