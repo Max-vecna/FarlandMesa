@@ -926,8 +926,8 @@
         import {
             initializeApp
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-                // MODIFICADO: Adicionado 'update'
-            import { getDatabase, ref, onValue, set, remove, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";        const firebaseConfig = {
+        // MODIFICADO: Adicionado 'update'
+        import { getDatabase, ref, onValue, set, remove, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"; const firebaseConfig = {
             apiKey: "AIzaSyCSFhUNp0weU09S13kZmUd0-J50-eHW1YU",
             authDomain: "farland-cards.firebaseapp.com",
             projectId: "farland-cards",
@@ -939,7 +939,7 @@
         };
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        window.firebaseDB = { database, ref, onValue, set, remove, runTransaction };
+        window.firebaseDB = { database, ref, onValue, set, remove, runTransaction, update };
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -2787,56 +2787,55 @@
 
                 // No seu arquivo index.html, encontre esta função e modifique-a
 
-document.addEventListener('click', async (e) => {
-    // Verifica se o botão "Enviar para a Mesa" foi clicado
-    if (e.target.id === 'send-to-table-btn' || e.target.closest('#send-to-table-btn')) {
-        const cardElement = e.target.closest('.rpg-card');
-        if (!cardElement) return;
-            seddManalife(cardElement.dataset.cardId)
-       
-    }
-});
+                document.addEventListener('click', async (e) => {
+                    // Verifica se o botão "Enviar para a Mesa" foi clicado
+                    if (e.target.id === 'send-to-table-btn' || e.target.closest('#send-to-table-btn')) {
+                        const cardElement = e.target.closest('.rpg-card');
+                        if (!cardElement) return;
+                        seddManalife(cardElement.dataset.cardId)
 
-async function seddManalife(cardId)
-{
-        const characterData = await getData(CARD_STORE_NAME, cardId);
+                    }
+                });
 
-        if (!characterData) {
-            showCustomAlert("Personagem não encontrado!");
-            return;
-        }
+                async function seddManalife(cardId) {
+                    const characterData = await getData(CARD_STORE_NAME, cardId);
 
-        // 1. Prepara os dados para enviar ao Firebase (SEM A IMAGEM)
-        const dataForTable = {
-            id: characterData.id,
-            name: characterData.title,
-            currentLife: characterData.attributes.vidaAtual,
-            maxLife: characterData.attributes.vida,
-            currentMana: characterData.attributes.manaAtual,
-            maxMana: characterData.attributes.mana,
-            money: characterData.dinheiro
-            // REMOVEMOS AS LINHAS imageBase64 e imageMimeType daqui
-        };
+                    if (!characterData) {
+                        showCustomAlert("Personagem não encontrado!");
+                        return;
+                    }
 
-        // 2. REMOVA OU COMENTE TODO ESTE BLOCO 'if' QUE CONVERTE A IMAGEM
-        /*
-        if (characterData.image) {
-            dataForTable.imageBase64 = `data:${characterData.imageMimeType};base64,${arrayBufferToBase64(characterData.image)}`;
-        }
-        */
+                    // 1. Prepara os dados para enviar ao Firebase (SEM A IMAGEM)
+                    const dataForTable = {
+                        id: characterData.id,
+                        name: characterData.title,
+                        currentLife: characterData.attributes.vidaAtual,
+                        maxLife: characterData.attributes.vida,
+                        currentMana: characterData.attributes.manaAtual,
+                        maxMana: characterData.attributes.mana,
+                        money: characterData.dinheiro
+                        // REMOVEMOS AS LINHAS imageBase64 e imageMimeType daqui
+                    };
 
-        // 3. Define a referência no Firebase Realtime Database
-        const tableRef = ref(database, `gameTables/default-table/characters/${characterData.id}`);
+                    // 2. REMOVA OU COMENTE TODO ESTE BLOCO 'if' QUE CONVERTE A IMAGEM
+                    /*
+                    if (characterData.image) {
+                        dataForTable.imageBase64 = `data:${characterData.imageMimeType};base64,${arrayBufferToBase64(characterData.image)}`;
+                    }
+                    */
 
-        // 4. Envia os dados
-        try {
-            await set(tableRef, dataForTable);
-            showCustomAlert(`"${characterData.title}" enviado para a mesa!`, 'success');
-        } catch (error) {
-            console.error("Erro ao enviar para a mesa:", error);
-            showCustomAlert("Falha ao conectar com a mesa.");
-        }
-}
+                    // 3. Define a referência no Firebase Realtime Database
+                    const tableRef = ref(database, `gameTables/default-table/characters/${characterData.id}`);
+
+                    // 4. Envia os dados
+                    try {
+                        await set(tableRef, dataForTable);
+                        showCustomAlert(`"${characterData.title}" enviado para a mesa!`, 'success');
+                    } catch (error) {
+                        console.error("Erro ao enviar para a mesa:", error);
+                        showCustomAlert("Falha ao conectar com a mesa.");
+                    }
+                }
                 // --- INÍCIO DA SOLUÇÃO ---
                 // Lista de seletores para todas as áreas que precisam de rolagem independente.
                 const scrollableAreas = [
@@ -2899,33 +2898,32 @@ async function seddManalife(cardId)
                             const card3d = cardOnScreen.querySelector('.nebula-sky');
                             resetcard3d(card3d);                // 2. Compara os valores e marca se precisa de atualização
                             if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
-                                  if (tableData.currentLife < localCharData.attributes.vidaAtual) {
-                            triggerCardPunch(card3d);
-                        }
-                        if (tableData.currentLife > localCharData.attributes.vidaAtual) {
-                            triggerCardLifeIn(card3d, vidaIcon);
-                        }
+                                if (tableData.currentLife < localCharData.attributes.vidaAtual) {
+                                    triggerCardPunch(card3d);
+                                }
+                                if (tableData.currentLife > localCharData.attributes.vidaAtual) {
+                                    triggerCardLifeIn(card3d, vidaIcon);
+                                }
                                 localCharData.attributes.vidaAtual = tableData.currentLife;
                                 needsUpdate = true;
                             }
-                            if (localCharData.attributes.manaAtual !== tableData.currentMana)
-                            {
-                                  playMp3Sound('mana.mp3');
-                                    if (localCharData.attributes.manaAtual > tableData.currentMana) {
-                                        createManaMist(manaIcon, 'out', '#1a1a1a');
-                                        card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                                    }
-                                    if (localCharData.attributes.manaAtual < tableData.currentMana) {
-                                        createManaMist(manaIcon, 'in', '#a78bfa');
-                                        card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                                        createRuneEffect(card3d);
-                                        setTimeout(() => {
-                                            const rune = card3d.querySelector('.rune-container');
-                                            if (rune) {
-                                                rune.remove();
-                                            }
-                                        }, 2500);
-                                    }
+                            if (localCharData.attributes.manaAtual !== tableData.currentMana) {
+                                playMp3Sound('mana.mp3');
+                                if (localCharData.attributes.manaAtual > tableData.currentMana) {
+                                    createManaMist(manaIcon, 'out', '#1a1a1a');
+                                    card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+                                }
+                                if (localCharData.attributes.manaAtual < tableData.currentMana) {
+                                    createManaMist(manaIcon, 'in', '#a78bfa');
+                                    card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                                    createRuneEffect(card3d);
+                                    setTimeout(() => {
+                                        const rune = card3d.querySelector('.rune-container');
+                                        if (rune) {
+                                            rune.remove();
+                                        }
+                                    }, 2500);
+                                }
 
                                 localCharData.attributes.manaAtual = tableData.currentMana;
                                 needsUpdate = true;
@@ -3940,111 +3938,112 @@ async function seddManalife(cardId)
                 }
                 statusModal.classList.remove('hidden');
             }
-           
-             // EVENT LISTENER DO MODAL DE STATUS MODIFICADO
-        statusForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentStatusEditingCardId) return;
 
-            const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
-            if (!cardData) return;
-            
-            const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
-            
-            const animationDuration = 500;
+            statusForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentStatusEditingCardId) return;
 
-            const oldLife = cardData.attributes.vidaAtual;
-            const oldMana = cardData.attributes.manaAtual;
-            const oldMoney = cardData.dinheiro;
+                const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
+                if (!cardData) return;
 
-            const newLife = parseInt(modalVidaAtualInput.value);
-            const newMana = parseInt(modalManaAtualInput.value);
-            const newMoney = parseInt(modalDinheiroInput.value);
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
 
-            if (cardOnScreen) {
-                const vidaIcon = cardOnScreen.querySelector('.heart-container');
-                const manaIcon = cardOnScreen.querySelector('.potion-container');
-                const moneyIcon = cardOnScreen.querySelector('.money-container');
-                const card3d = cardOnScreen.querySelector('.nebula-sky');
-                resetcard3d(card3d);
+                const animationDuration = 500;
 
-                if (newLife !== oldLife) {
-                    if (newLife < oldLife) {
-                        triggerCardPunch(card3d);
+                const oldLife = cardData.attributes.vidaAtual;
+                const oldMana = cardData.attributes.manaAtual;
+                const oldMoney = cardData.dinheiro;
+
+                const newLife = parseInt(modalVidaAtualInput.value);
+                const newMana = parseInt(modalManaAtualInput.value);
+                const newMoney = parseInt(modalDinheiroInput.value);
+
+                if (cardOnScreen) {
+                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
+                    const manaIcon = cardOnScreen.querySelector('.potion-container');
+                    const moneyIcon = cardOnScreen.querySelector('.money-container');
+                    const card3d = cardOnScreen.querySelector('.nebula-sky');
+                    resetcard3d(card3d);
+
+                    if (newLife !== oldLife) {
+                        if (newLife < oldLife) {
+                            triggerCardPunch(card3d);
+                        }
+                        if (newLife > oldLife) {
+                            triggerCardLifeIn(card3d, vidaIcon);
+                        }
                     }
-                    if (newLife > oldLife) {
-                        triggerCardLifeIn(card3d, vidaIcon);
+                    if (newMana !== oldMana) {
+                        playMp3Sound('mana.mp3');
+                        if (newMana < oldMana) {
+                            createManaMist(manaIcon, 'out', '#1a1a1a');
+                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+                        }
+                        if (newMana > oldMana) {
+                            createManaMist(manaIcon, 'in', '#a78bfa');
+                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                            createRuneEffect(card3d);
+                            setTimeout(() => {
+                                const rune = card3d.querySelector('.rune-container');
+                                if (rune) {
+                                    rune.remove();
+                                }
+                            }, 2500);
+                        }
                     }
+                    if (newMoney !== oldMoney) {
+                        playMp3Sound('money.mp3');
+                        if (newMoney > oldMoney) {
+                            createManaMist(moneyIcon, 'in', '#fcd34d');
+                        }
+                        if (newMoney < oldMoney) {
+                            createManaMist(moneyIcon, 'out', '#fcd34d');
+                        }
+                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+                    }
+                    triggerAnimation(card3d, 'animate');
+                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
+
                 }
-                if (newMana !== oldMana) {
-                    playMp3Sound('mana.mp3');
-                    if (newMana < oldMana) {
-                        createManaMist(manaIcon, 'out', '#1a1a1a');
-                        card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                    }
-                    if (newMana > oldMana) {
-                        createManaMist(manaIcon, 'in', '#a78bfa');
-                        card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                        createRuneEffect(card3d);
-                        setTimeout(() => {
-                            const rune = card3d.querySelector('.rune-container');
-                            if (rune) {
-                                rune.remove();
-                            }
-                        }, 2500);
-                    }
-                }
-                if (newMoney !== oldMoney) {
-                    playMp3Sound('money.mp3');
-                    if (newMoney > oldMoney) {
-                        createManaMist(moneyIcon, 'in', '#fcd34d');
-                    }
-                    if (newMoney < oldMoney) {
-                        createManaMist(moneyIcon, 'out', '#fcd34d');
-                    }
-                    card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-                }
-                triggerAnimation(card3d, 'animate');
-                animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
-                animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
-                animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
-                
-            }
 
-            // Atualiza os dados no objeto local
-            cardData.attributes.vidaAtual = newLife;
-            cardData.attributes.manaAtual = newMana;
-            cardData.dinheiro = newMoney;
+                // Atualiza os dados no objeto local
+                cardData.attributes.vidaAtual = newLife;
+                cardData.attributes.manaAtual = newMana;
+                cardData.dinheiro = newMoney;
 
-            // Salva os dados localmente no IndexedDB
-            await saveData(CARD_STORE_NAME, cardData);
+                // Salva os dados localmente no IndexedDB
+                await saveData(CARD_STORE_NAME, cardData);
 
-            // ---> INÍCIO DA MODIFICAÇÃO <---
-            // Prepara os dados para enviar ao Firebase
-            const updatesForTable = {
-                currentLife: newLife,
-                currentMana: newMana,
-                money: newMoney
-            };
-            // Chama a nova função para sincronizar com a mesa
-            await updateCharacterOnTable(currentStatusEditingCardId, updatesForTable);
-            // ---> FIM DA MODIFICAÇÃO <---
+                // ---> INÍCIO DA MODIFICAÇÃO <---
+                // Prepara os dados para enviar ao Firebase
+                const updatesForTable = {
+                    currentLife: newLife,
+                    currentMana: newMana,
+                    money: newMoney
+                };
+                // Chama a nova função para sincronizar com a mesa
+                //await updateCharacterOnTable(currentStatusEditingCardId, updatesForTable);
+                // ---> FIM DA MODIFICAÇÃO <---
 
-            setTimeout(() => {
-                updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
-                updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
-            }, animationDuration);
+                setTimeout(() => {
+                    updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
+                    updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
+                }, animationDuration);
 
-            statusModal.classList.add('hidden');
-            currentStatusEditingCardId = null;
-        });
-        
+                statusModal.classList.add('hidden');
+                currentStatusEditingCardId = null;
+            });
+            // EVENT LISTENER DO MODAL DE STATUS MODIFICADO
+
+
             statusForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!currentStatusEditingCardId) return;
                 const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
                 if (!cardData) return;
-                
+
                 const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
                 const animationDuration = 500;
                 const oldLife = cardData.attributes.vidaAtual;
@@ -4864,6 +4863,25 @@ async function seddManalife(cardId)
                 container.addEventListener('touchmove', moveInteraction);
                 container.addEventListener('touchend', endInteraction);
                 container.addEventListener('touchcancel', endInteraction);
+            }
+
+            async function updateCharacterOnTable(charId, updates) {
+                // As constantes 'database', 'ref', e 'update' já são importadas do Firebase
+                const { database, ref, update } = window.firebaseDB;
+
+                // Cria a referência para o personagem específico na mesa
+                const charOnTableRef = ref(database, `gameTables/default-table/characters/${charId}`);
+
+                try {
+                    // Usa a função 'update' para alterar apenas os campos especificados
+                    // Isso evita apagar outros dados que possam existir no nó do personagem na mesa
+                    await update(charOnTableRef, updates);
+                    console.log(`Dados do personagem ${charId} atualizados na mesa.`);
+                } catch (error) {
+                    console.error("Falha ao atualizar o personagem na mesa:", error);
+                    // Opcional: Mostrar um alerta para o usuário
+                    showCustomAlert("Não foi possível sincronizar com a mesa.");
+                }
             }
             // --- FIX ENDS HERE ---
         });
