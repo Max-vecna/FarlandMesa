@@ -4962,7 +4962,7 @@ function initializeNebulaEffect(container) {
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
+                            //window.addEventListener('deviceorientation', handleOrientation);
                             permissionButton.remove();
                         } else {
                             alert('Permissão para usar sensores de movimento foi negada.');
@@ -4973,7 +4973,7 @@ function initializeNebulaEffect(container) {
             });
         } else {
             // Outros navegadores (como Chrome no Android) não precisam de permissão explícita
-            window.addEventListener('deviceorientation', handleOrientation);
+            //window.addEventListener('deviceorientation', handleOrientation);
         }
     }
 }
@@ -5028,6 +5028,7 @@ function initializeNebulaEffect(container) {
 
 
 </html>
+
 
 
 
