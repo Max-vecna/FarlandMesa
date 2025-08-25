@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -12,7 +11,6 @@
     <link rel="stylesheet" href="animation.css">
     <script src="animation.js"></script>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="shield.png">
     <style>
         /* O contêiner principal com o efeito */
         .nebula-sky {
@@ -837,18 +835,21 @@
             </div>
             <form id="status-form" class="space-y-4">
                 <div id="vida-input-container">
-                    <label for="modal-vida-atual" class="block text-sm font-semibold mb-1">Vida Atual</label>
-                    <input type="number" id="modal-vida-atual"
+                    <label for="modal-vida-atual" class="block text-sm font-semibold mb-1">Alterar Vida (+/-) <span
+                            id="current-life-display" class="text-gray-400 font-normal"></span></label>
+                    <input type="text" id="modal-vida-atual" placeholder="Ex: -10 ou 5"
                         class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
                 <div id="mana-input-container">
-                    <label for="modal-mana-atual" class="block text-sm font-semibold mb-1">Mana Atual</label>
-                    <input type="number" id="modal-mana-atual"
+                    <label for="modal-mana-atual" class="block text-sm font-semibold mb-1">Alterar Mana (+/-) <span
+                            id="current-mana-display" class="text-gray-400 font-normal"></span></label>
+                    <input type="text" id="modal-mana-atual" placeholder="Ex: -10 ou 5"
                         class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
                 <div id="dinheiro-input-container">
-                    <label for="modal-dinheiro" class="block text-sm font-semibold mb-1">Dinheiro</label>
-                    <input type="number" id="modal-dinheiro"
+                    <label for="modal-dinheiro" class="block text-sm font-semibold mb-1">Alterar Dinheiro (+/-) <span
+                            id="current-dinheiro-display" class="text-gray-400 font-normal"></span></label>
+                    <input type="text" id="modal-dinheiro" placeholder="Ex: -50 ou 100"
                         class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
                 <button type="submit"
@@ -928,8 +929,8 @@
         import {
             initializeApp
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // MODIFICADO: Adicionado 'update'
-        import { getDatabase, ref, onValue, set, remove, runTransaction, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"; const firebaseConfig = {
+        import { getDatabase, ref, onValue, set, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        const firebaseConfig = {
             apiKey: "AIzaSyCSFhUNp0weU09S13kZmUd0-J50-eHW1YU",
             authDomain: "farland-cards.firebaseapp.com",
             projectId: "farland-cards",
@@ -941,7 +942,7 @@
         };
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        window.firebaseDB = { database, ref, onValue, set, remove, runTransaction, update };
+        window.firebaseDB = { database, ref, onValue, set, remove, runTransaction };
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1208,7 +1209,6 @@
             const progressText = document.getElementById('progressText');
             const mainContent = document.getElementById('mainContent');
             const nav = document.getElementById('nav');
-            const dbnav = document.getElementById('db-nav');
             const showDisplayBtn = document.getElementById('showDisplayBtn');
             const showSpellDisplayBtn = document.getElementById('showSpellDisplayBtn');
             const showItemDisplayBtn = document.getElementById('showItemDisplayBtn');
@@ -1334,10 +1334,6 @@
             const takeCardPreview = document.getElementById('take-card-preview');
             const takeCardName = document.getElementById('take-card-name');
 
-            // --- ADICIONE ESTA LINHA ---
-            let charactersOnTableIds = new Set();
-            // --- FIM DA LINHA ADICIONADA ---
-
             let currentCardToShare = null;
 
 
@@ -1371,7 +1367,6 @@
                 hideAllSections();
                 creationSection.classList.remove('hidden');
                 nav.classList.remove('hidden');
-                dbnav.classList.remove('hidden');
                 if (!isEditing) {
                     formTitle.textContent = "Criar Novo Cartão de Personagem";
                     submitButton.textContent = 'Criar Cartão';
@@ -1388,7 +1383,6 @@
                 hideAllSections();
                 spellCreationSection.classList.remove('hidden');
                 nav.classList.remove('hidden');
-                dbnav.classList.remove('hidden');
                 if (!isEditing) {
                     spellFormTitle.textContent = "Nova Magia/Habilidade";
                     spellSubmitButton.textContent = 'Salvar';
@@ -1408,7 +1402,6 @@
                 hideAllSections();
                 itemCreationSection.classList.remove('hidden');
                 nav.classList.remove('hidden');
-                dbnav.classList.remove('hidden');
                 if (!isEditing) {
                     itemFormTitle.textContent = "Novo Item (Pré-criado)";
                     itemSubmitButton.textContent = 'Salvar Item';
@@ -2146,7 +2139,6 @@
                 linkSection.classList.remove('hidden');
                 updateActiveNav(null);
                 nav.classList.add('hidden');
-                dbnav.classList.add('hidden');
                 currentLinkingCharacterId = characterId;
                 if (viewType === 'inventory') {
                     linkSectionTitle.textContent = `Inventário de: ${character.title}`;
@@ -2178,7 +2170,6 @@
                         if (!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
                         if (!linkSection.classList.contains('hidden')) showDisplayView();
                         nav.classList.remove('hidden');
-                        dbnav.classList.remove('hidden');
                     });
                 });
 
@@ -2186,7 +2177,6 @@
                 splashScreen.classList.remove('hidden');
                 mainContent.classList.add('hidden');
                 nav.classList.add('hidden');
-                dbnav.classList.add('hidden');
                 if (loaderClipRect) loaderClipRect.setAttribute('height', '0');
                 progressText.textContent = 'Iniciando aventura...';
             }
@@ -2205,7 +2195,6 @@
                 splashScreen.classList.add('hidden');
                 mainContent.classList.remove('hidden');
                 nav.classList.remove('hidden');
-                dbnav.classList.remove('hidden');
             }
 
             function populatePericiasCheckboxes() {
@@ -2589,10 +2578,6 @@
                 await updateSidebarsContent(cardElement.querySelector('.rpg-card'), cardId);
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
-
-                // --- ADICIONE ESTA LINHA ---
-                updateSendToTableButtonState(cardId);
-                // --- FIM DA LINHA ADICIONADA ---
             }
             async function createCardElement(cardData) {
                 const cardWrapper = document.createElement('div');
@@ -2648,7 +2633,7 @@
                             <div id="glow-overlay"></div>
                             <div class="card-3d">                                 
                                 <div class="card-front" style="border-color: ${palette.borderColor}">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between; background-position: center;">
+                                    <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between; background-position: center;">
                                     <div id="spell-sidebar" class="sidebar sidebar-left">
                                         <div class="sidebar-content">
                                             <div class="items-center justify-center gap-2 mb-4" style="margin-right: -40px; display: flex; flex-direction: column;">
@@ -2714,9 +2699,6 @@
                                         <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p>
                                     </div>
                                     <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
-                                    <button id="send-to-table-btn" data-action="send-to-table" class="py-2 px-4 mt-3 rounded-full text-sm font-bold text-white transition-colors flex items-center gap-2 z-10">
-                                        <i class="fas fa-dungeon" style="font-size: 25px;"></i>
-                                    </button>
                                     <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
                                         <div class="grid grid-cols-5 gap-x-4 gap-y-1 text-xs my-2 mb-4">
                                             <div class="text-center">CA<br>${cardData.attributes.armadura || 0}</div>
@@ -2737,7 +2719,8 @@
                                             </div>
                                             `;
                 }).join('')}
-                                        <div class="pericias-scroll-area flex flex-col gap-2 mt-2" style="max-height: 100px; overflow-y: auto;">
+                                        <p class="text-xs text-gray-400 italic  mt-4">Perícias</p>
+                                        <div class="pericias-scroll-area flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;">
                                             <div class="flex items-center justify-center w-full"></div>
                                             ${periciasHtml}
                                         </div>
@@ -2753,8 +2736,8 @@
                                     </div>
                                 </div>
                                 <div class="card-back divPartculas" style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply; background-position: center;">
-                                    <div class="back-content p-4 text-left" style="display: flex; border: 5px solid ${palette.borderColor}; align-items: center; justify-content: center;">
-                                    <i class="fas fa-shield-alt" style="font-size: 200px; opacity: .4; color: ${palette.borderColor}"></i>                                
+                                    <div class="back-content p-4 text-left" style="display: flex; border: 5px solid rgb(120, 129, 93); align-items: center; justify-content: center;">
+                                    <i class="fas fa-shield-alt" style="font-size: 200px; opacity: .2;"></i>                                
                                     </div>
                                 </div>
                             </div>
@@ -2800,85 +2783,6 @@
                     }
                 });
 
-                // Coloque este código dentro do script principal em index.html
-
-                // No seu arquivo index.html, encontre esta função e modifique-a
-
-                // --- ADICIONE ESTE NOVO BLOCO ---
-                document.addEventListener('click', async (e) => {
-                    const sendToTableBtn = e.target.closest('#send-to-table-btn');
-                    if (sendToTableBtn) {
-                        const cardElement = sendToTableBtn.closest('.rpg-card');
-                        if (!cardElement) return;
-
-                        const charId = cardElement.dataset.cardId;
-
-                        // Verifica se tem a classe 'on-table' para decidir a ação
-                        if (sendToTableBtn.classList.contains('on-table')) {
-                            // Se sim, remove o personagem
-                            if (confirm('Tem certeza que deseja remover este personagem da mesa?')) {
-                                await removeCharacterFromTable(charId);
-                            }
-                        } else {
-                            // Se não, envia o personagem (função que já existia)
-                            await seddManalife(charId);
-                        }
-                    }
-                });
-
-                // Função para remover do Firebase a partir do index.html
-                async function removeCharacterFromTable(charId) {
-                    const { database, ref, remove } = window.firebaseDB;
-                    const tableRef = ref(database, `gameTables/default-table/characters/${charId}`);
-                    try {
-                        await remove(tableRef);
-                        showCustomAlert("Removido!", 'success');
-                    } catch (error) {
-                        console.error("Erro ao remover da mesa:", error);
-                        showCustomAlert("Falha ao remover o personagem da mesa.");
-                    }
-                }
-                // --- FIM DO NOVO BLOCO ---
-
-                async function seddManalife(cardId) {
-                    const characterData = await getData(CARD_STORE_NAME, cardId);
-
-                    if (!characterData) {
-                        showCustomAlert("Personagem não encontrado!");
-                        return;
-                    }
-
-                    // 1. Prepara os dados para enviar ao Firebase (SEM A IMAGEM)
-                    const dataForTable = {
-                        id: characterData.id,
-                        name: characterData.title,
-                        currentLife: characterData.attributes.vidaAtual,
-                        maxLife: characterData.attributes.vida,
-                        currentMana: characterData.attributes.manaAtual,
-                        maxMana: characterData.attributes.mana,
-                        money: characterData.dinheiro
-                        // REMOVEMOS AS LINHAS imageBase64 e imageMimeType daqui
-                    };
-
-                    // 2. REMOVA OU COMENTE TODO ESTE BLOCO 'if' QUE CONVERTE A IMAGEM
-                    /*
-                    if (characterData.image) {
-                        dataForTable.imageBase64 = `data:${characterData.imageMimeType};base64,${arrayBufferToBase64(characterData.image)}`;
-                    }
-                    */
-
-                    // 3. Define a referência no Firebase Realtime Database
-                    const tableRef = ref(database, `gameTables/default-table/characters/${characterData.id}`);
-
-                    // 4. Envia os dados
-                    try {
-                        await set(tableRef, dataForTable);
-                        showCustomAlert(`enviado`, 'success');
-                    } catch (error) {
-                        console.error("Erro ao enviar para a mesa:", error);
-                        showCustomAlert("Falha ao conectar com a mesa.");
-                    }
-                }
                 // --- INÍCIO DA SOLUÇÃO ---
                 // Lista de seletores para todas as áreas que precisam de rolagem independente.
                 const scrollableAreas = [
@@ -2907,147 +2811,6 @@
                     initializeNebulaEffect(nebulaContainer);
                 }
                 return cardWrapper;
-            }
-
-            // Cole esta nova função dentro do script principal do index.html
-
-            /**
-             * Inicia a escuta por atualizações na mesa de jogo do Firebase
-             * e sincroniza os dados de volta para o IndexedDB local.
-             */
-            function listenForTableUpdates() {
-                const {
-                    database,
-                    ref,
-                    onValue
-                } = window.firebaseDB;
-                const tableRef = ref(database, 'gameTables/default-table/characters');
-
-                // onValue fica monitorando o 'nó' de personagens na mesa
-                onValue(tableRef, async (snapshot) => {
-                    // CORREÇÃO: Garante que 'charactersOnTable' seja um objeto vazio ({}) se o snapshot for nulo (vazio).
-                    const charactersOnTable = snapshot.val() || {};
-
-                    // Atualiza nosso rastreador global com os IDs dos personagens na mesa.
-                    // Se 'charactersOnTable' for {}, 'Object.keys' retornará um array vazio, limpando o rastreador corretamente.
-                    charactersOnTableIds = new Set(Object.keys(charactersOnTable));
-
-                    // Verifica se um card está sendo exibido e atualiza o estado do seu botão
-                    const displayedCardElement = document.querySelector('.rpg-card[data-card-id]');
-                    if (displayedCardElement) {
-                        updateSendToTableButtonState(displayedCardElement.dataset.cardId);
-                    }
-
-                    // Itera sobre cada personagem que está na mesa para sincronizar
-                    for (const charId in charactersOnTable) {
-                        const tableData = charactersOnTable[charId];
-
-                        // 1. Tenta buscar o personagem correspondente no banco de dados local
-                        const localCharData = await getData(CARD_STORE_NAME, charId);
-
-                        // Se o personagem existe localmente, prossegue com a sincronização
-                        if (localCharData) {
-                            let needsUpdate = false;
-
-                            // --- INÍCIO DA CORREÇÃO ---
-                            // Pega referências ao card e seus elementos de animação se ele estiver na tela
-                            const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                            let card3d, vidaIcon, manaIcon, moneyIcon;
-
-                            if (cardOnScreen) {
-                                card3d = cardOnScreen.querySelector('.nebula-sky');
-                                vidaIcon = cardOnScreen.querySelector('.heart-container');
-                                manaIcon = cardOnScreen.querySelector('.potion-container');
-                                moneyIcon = cardOnScreen.querySelector('.money-container');
-                                resetcard3d(card3d); // Limpa animações anteriores
-                            }
-                            // --- FIM DA CORREÇÃO ---
-
-                            // 2. Compara os valores e marca se precisa de atualização E aciona a animação
-                            if (localCharData.attributes.vidaAtual !== tableData.currentLife) {
-                                // Aciona a animação apenas se o card estiver visível
-                                if (cardOnScreen) {
-                                    if (tableData.currentLife < localCharData.attributes.vidaAtual) {
-                                        triggerCardPunch(card3d);
-                                    } else {
-                                        triggerCardLifeIn(card3d, vidaIcon);
-                                    }
-                                }
-                                localCharData.attributes.vidaAtual = tableData.currentLife;
-                                needsUpdate = true;
-                            }
-
-                            if (localCharData.attributes.manaAtual !== tableData.currentMana) {
-                                if (cardOnScreen) {
-                                    playMp3Sound('mana.mp3');
-                                    if (localCharData.attributes.manaAtual > tableData.currentMana) {
-                                        createManaMist(manaIcon, 'out', '#1a1a1a');
-                                        card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-                                    } else {
-                                        createManaMist(manaIcon, 'in', '#a78bfa');
-                                        card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                                    }
-                                }
-                                localCharData.attributes.manaAtual = tableData.currentMana;
-                                needsUpdate = true;
-                            }
-
-                            if (localCharData.dinheiro !== tableData.money) {
-                                if (cardOnScreen) {
-                                    playMp3Sound('money.mp3');
-                                    const direction = tableData.money > localCharData.dinheiro ? 'in' : 'out';
-                                    createManaMist(moneyIcon, direction, '#fcd34d');
-                                    card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-                                }
-                                localCharData.dinheiro = tableData.money;
-                                needsUpdate = true;
-                            }
-
-                            if (cardOnScreen) {
-                                triggerAnimation(card3d, 'animate');
-                            }
-
-                            // 3. Se algum valor mudou, salva no banco local e atualiza a UI
-                            if (needsUpdate) {
-                                await saveData(CARD_STORE_NAME, localCharData);
-                                console.log(`Personagem "${localCharData.title}" sincronizado da mesa.`);
-
-                                // 4. Verifica se o card atualizado é o que está sendo exibido na tela
-                                const displayedCardElement = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                                if (displayedCardElement) {
-                                    // Se sim, atualiza os valores na interface gráfica
-                                    updateCardUI(charId, tableData);
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            /**
-             * Atualiza a interface gráfica de um card específico com novos dados.
-             * @param {string} cardId - O ID do card a ser atualizado.
-             * @param {object} newData - Os novos dados (currentLife, currentMana, money).
-             */
-            function updateCardUI(cardId, newData) {
-                const cardElement = document.querySelector(`.rpg-card[data-card-id="${cardId}"]`);
-                if (!cardElement) return;
-
-                // Seleciona os spans que exibem os valores
-                const lifeSpan = cardElement.querySelector('span[data-status="life"]');
-                const manaSpan = cardElement.querySelector('span[data-status="mana"]');
-                const moneySpan = cardElement.querySelector('span[data-status="money"]');
-
-                // Atualiza os textos e as barras de status
-                if (lifeSpan) lifeSpan.textContent = newData.currentLife;
-                if (manaSpan) manaSpan.textContent = newData.currentMana;
-                if (moneySpan) moneySpan.textContent = newData.money;
-
-                // Pega os valores máximos do card para calcular a porcentagem correta das barras
-                const maxLife = parseInt(cardElement.querySelector('.heart-container span:last-child').textContent);
-                const maxMana = parseInt(cardElement.querySelector('.potion-container span:last-child').textContent);
-
-                updateHeartVisuals(newData.currentLife, maxLife);
-                updatePotionVisuals(newData.currentMana, maxMana);
             }
 
             function createThumbnailElement(cardData, storeName) {
@@ -3167,62 +2930,58 @@
                           
                             <div class="card-3d">
                                 <div class="card-front" style="background-image:${!imgIs ? `url(${spellData.imageURL})` : 'url(backMagia.png)'}; background-size: cover; background-position: center;">
-                                <div class="parallax-container"  style="opacity: ${!imgIs ? '0' : '1'}">
-                                    <div id="nebula-bg" class="stars-layer"   style="background: url(backMagia.png); background-size: contain;"></div>
-                                    <div id="stars-far" class="stars-layer"></div>
-                                    <div id="stars-medium" class="stars-layer"></div>
-                                    <div id="stars-near" class="stars-layer"></div>
-                                </div>
-                                <div id="glow-overlay"></div>
-                                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085,transparent, #00000085, #000000ba);">
-                                        <div id="txtMagia" class="w-full h-full"  style=" display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
-                                            <div class="text-center w-full">
-                                                <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3>
-                                                <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                                      <div class="parallax-container"  style="opacity: ${!imgIs ? '0' : '1'}">
+                                <div id="nebula-bg" class="stars-layer"   style="background: url(backMagia.png); background-size: contain; background-position: center;"></div>
+                                <div id="stars-far" class="stars-layer"></div>
+                                <div id="stars-medium" class="stars-layer"></div>
+                                <div id="stars-near" class="stars-layer"></div>
+                            </div>
+                            <div id="glow-overlay"></div>
+                                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085,transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                                    <div class="text-center w-full">
+                                        <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3>
+                                        <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                                    </div>
+                                    ${/* MODIFICAÇÃO AQUI: Adiciona o bloco de informações apenas se for magia */ ''}
+                                    ${isMagia ? `
+                                    <div class="text-xs text-gray-300 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                                        <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
+                                        <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
+                                        <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
+                                        <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
+                                        <p class="text-left"><strong>Resistência:</strong> ${spellData.resistencia || '-'}</p>
+                                    </div>
+                                    ` : ''}
+                                    <div class="w-full">
+                                        <div class="scrollable-content text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px; scroll-snap-type: x mandatory;">
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Descrição</h4>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.description || 'Nenhuma descrição.'}</p>
                                             </div>
-                                            ${/* MODIFICAÇÃO AQUI: Adiciona o bloco de informações apenas se for magia */ ''}
+                                            ${/* MODIFICAÇÃO AQUI: Adiciona os campos extras apenas se for magia */ ''}
                                             ${isMagia ? `
-                                            <div class="text-xs text-gray-300 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                                                <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
-                                                <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
-                                                <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
-                                                <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
-                                                <p class="text-left"><strong>Resistência:</strong> ${spellData.resistencia || '-'}</p>
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Aprimorar</h4>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.enhance || 'Nenhuma descrição.'}</p>
+                                            </div>
+                                            <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.true || 'Nenhuma descrição.'}</p>
                                             </div>
                                             ` : ''}
-                                            <div class="w-full">
-                                                <div class="scrollable-content text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px; scroll-snap-type: x mandatory;">
-                                                    <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                        <h4 class="font-semibold text-gray-300">Descrição</h4>
-                                                        <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.description || 'Nenhuma descrição.'}</p>
-                                                    </div>
-                                                    ${/* MODIFICAÇÃO AQUI: Adiciona os campos extras apenas se for magia */ ''}
-                                                    ${isMagia ? `
-                                                    <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                        <h4 class="font-semibold text-gray-300">Aprimorar</h4>
-                                                        <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.enhance || 'Nenhuma descrição.'}</p>
-                                                    </div>
-                                                    <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                        <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
-                                                        <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${spellData.true || 'Nenhuma descrição.'}</p>
-                                                    </div>
-                                                    ` : ''}
-                                                </div>
-                                            </div>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                                 <div class="card-back" style="background-image:${!imgIs ? `url(${spellData.imageURL})` : 'url(backMagia.png)'}; background-size: cover; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply; background-position: center;">
-                                    <div class="back-content p-4 text-left" style="display: flex; border: 5px solid ${palette.borderColor}; align-items: center; justify-content: center;">
-                                    ${isMagia ? `<i class="fas fa-hat-wizard" style="font-size: 200px; opacity: .4;color: ${palette.borderColor}"></i>` : `<i class="fas fa-fist-raised" style="font-size: 200px; opacity: .4;color: ${palette.borderColor}"></i>`}
+                                    <div class="back-content p-4 text-left" style="display: flex; border: 5px solid rgb(120, 129, 93); align-items: center; justify-content: center;">
+                                    ${isMagia ? `<i class="fas fa-hat-wizard" style="font-size: 200px; opacity: .2;"></i>` : `<i class="fas fa-fist-raised" style="font-size: 200px; opacity: .2;"></i>`}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>`;
                 const card3d = cardDiv.querySelector('.card-3d');
-
-
 
                 if (card3d) {
                     card3d.addEventListener('click', (e) => {
@@ -3415,31 +3174,31 @@
                             <div id="milky-way"></div>
                         </div>
                         <div id="glow-overlay"></div>
-                                <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085, transparent, #00000085, #000000ba);">
-                                   <div id="txtItem" class="w-full h-full" style="display: flex; flex-direction: column; align-items: center; justify-content: space-between;"> 
-                                    <div class="text-center w-full">
-                                        <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
-                                        <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
-                                    </div>
-                                    <div class="text-xs text-gray-300 mb-3 w-full px-2" style="position: absolute; margin-top: 55px; text-align:justify;">
-                                        <p><strong>Tipo:</strong> ${itemData.type || '-'}</p>
-                                        <p><strong>Dano:</strong> ${itemData.damage || '-'}</p>
-                                        <p><strong>Carga:</strong> ${itemData.charge}</p>
-                                        <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
-                                        <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
-                                        <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
-                                        <p><strong>Usável:</strong> ${itemData.usable ? 'Sim' : 'Não'}</p>
-                                    </div>
-                                    <div class="w-full p-2" style="text-align:justify;">
-                                        <p class="text-xs text-gray-300 italic">Efeito</p>
-                                        <p class="text-xs text-gray-300 italic" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${itemData.effect || 'Nenhum efeito.'}</p>
-                                    </div>
-                                  </div>  
+                                <div  id="txtItem" class="rounded-3xl 
+                                relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                                <div class="text-center w-full">
+                                    <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
+                                    <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                                </div>
+                                <div class="text-xs text-gray-300 mb-3 w-full px-2"  style="position: absolute; margin-top: 55px; text-align:justify;
+                                    left: 15px;">
+                                    <p><strong>Tipo:</strong> ${itemData.type || '-'}</p>
+                                    <p><strong>Dano:</strong> ${itemData.damage || '-'}</p>
+                                    <p><strong>Carga:</strong> ${itemData.charge}</p>
+                                    <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
+                                    <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
+                                    <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
+                                    <p><strong>Usável:</strong> ${itemData.usable ? 'Sim' : 'Não'}</p>
+                                </div>
+                                <div class="w-full p-2" style="text-align:justify;">
+                                    <p class="text-xs text-gray-300 italic">Efeito</p>
+                                    <p class="text-xs text-gray-300 italic" style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${itemData.effect || 'Nenhum efeito.'}</p>
+                                </div>
                                 </div>
                             </div>
                             <div class="card-back" style="background-image:${!imgIs ? `url(${itemData.imageURL})` : 'url(backItens.png)'}; background-size: cover; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;background-position: center;">
-                                <div class="back-content p-4 text-left" style="display: flex; border: 5px solid ${palette.borderColor}; align-items: center; justify-content: center;">
-                                <i class="fas fa-box" style="font-size: 200px; opacity: .4;color: ${palette.borderColor}"></i>  
+                                <div class="back-content p-4 text-left" style="display: flex; border: 5px solid rgb(120, 129, 93); align-items: center; justify-content: center;">
+                                <i class="fas fa-box" style="font-size: 200px; opacity: .2;"></i>  
                                 </div>
                             </div>
                         </div>
@@ -3960,7 +3719,6 @@
                         .remove();
                 }
             });
-
             cardDisplayArea.addEventListener('click', async (e) => {
                 const actionElement = e.target.closest('[data-action]');
                 const cardElement = e.target.closest('.rpg-card');
@@ -3982,19 +3740,30 @@
                         'spells');
                 }
             });
+
             async function openStatusModal(cardId, local) {
                 const cardData = await getData(CARD_STORE_NAME, cardId);
                 if (!cardData) return;
                 currentStatusEditingCardId = cardId;
-                modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
-                modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
-                modalDinheiroInput.value = cardData.dinheiro ||
-                    0;
-                modalVidaAtualInput.max = cardData.attributes.vida;
-                modalManaAtualInput.max = cardData.attributes.mana;
+
+                // Limpa os inputs e define o placeholder
+                modalVidaAtualInput.value = '';
+                modalManaAtualInput.value = '';
+                modalDinheiroInput.value = '';
+
+                // Mostra os valores atuais nos spans de referência
+                document.getElementById('current-life-display').textContent = `(Atual: ${cardData.attributes.vidaAtual}/${cardData.attributes.vida})`;
+                document.getElementById('current-mana-display').textContent = `(Atual: ${cardData.attributes.manaAtual}/${cardData.attributes.mana})`;
+                document.getElementById('current-dinheiro-display').textContent = `(Atual: ${cardData.dinheiro} 💰)`;
+
+                // Armazena os valores máximos nos datasets dos inputs para usar na validação
+                modalVidaAtualInput.dataset.max = cardData.attributes.vida;
+                modalManaAtualInput.dataset.max = cardData.attributes.mana;
+
                 vidaInputContainer.classList.add('hidden');
                 manaInputContainer.classList.add('hidden');
                 dinheiroInputContainer.classList.add('hidden');
+
                 if (local === 'life') {
                     vidaInputContainer.classList.remove('hidden');
                 } else if (local === 'mana') {
@@ -4005,99 +3774,93 @@
                 statusModal.classList.remove('hidden');
             }
 
-          statusForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentStatusEditingCardId) return;
+            statusForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentStatusEditingCardId) return;
+                const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
+                if (!cardData) return;
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
+                const animationDuration = 500;
+                const oldLife = cardData.attributes.vidaAtual;
+                const oldMana = cardData.attributes.manaAtual;
+                const oldMoney = cardData.dinheiro;
 
-    const cardData = await getData(CARD_STORE_NAME, currentStatusEditingCardId);
-    if (!cardData) return;
+                // Pega o valor da MUDANÇA do input (ex: -10, 5)
+                const lifeChange = parseInt(modalVidaAtualInput.value) || 0;
+                const manaChange = parseInt(modalManaAtualInput.value) || 0;
+                const moneyChange = parseInt(modalDinheiroInput.value) || 0;
 
-    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
-    const animationDuration = 500;
+                // Calcula o novo valor somando a mudança ao valor antigo
+                let newLife = oldLife + lifeChange;
+                let newMana = oldMana + manaChange;
+                let newMoney = oldMoney + moneyChange;
 
-    const oldLife = cardData.attributes.vidaAtual;
-    const oldMana = cardData.attributes.manaAtual;
-    const oldMoney = cardData.dinheiro;
+                // Validação para garantir que os valores não ultrapassem os limites
+                const maxLife = parseInt(modalVidaAtualInput.dataset.max) || newLife;
+                const maxMana = parseInt(modalManaAtualInput.dataset.max) || newMana;
+                newLife = Math.max(0, Math.min(newLife, maxLife)); // Não pode ser menor que 0 ou maior que o máximo
+                newMana = Math.max(0, Math.min(newMana, maxMana)); // Não pode ser menor que 0 ou maior que o máximo
+                newMoney = Math.max(0, newMoney); // Dinheiro não pode ser negativo
 
-    const newLife = parseInt(modalVidaAtualInput.value);
-    const newMana = parseInt(modalManaAtualInput.value);
-    const newMoney = parseInt(modalDinheiroInput.value);
-
-    // 1. Aciona as animações imediatamente
-    if (cardOnScreen) {
-        const vidaIcon = cardOnScreen.querySelector('.heart-container');
-        const manaIcon = cardOnScreen.querySelector('.potion-container');
-        const moneyIcon = cardOnScreen.querySelector('.money-container');
-        const card3d = cardOnScreen.querySelector('.nebula-sky');
-        resetcard3d(card3d);
-
-        if (newLife !== oldLife) {
-            if (newLife < oldLife) {
-                triggerCardPunch(card3d);
-            } else {
-                triggerCardLifeIn(card3d, vidaIcon);
-            }
-        }
-        if (newMana !== oldMana) {
-            playMp3Sound('mana.mp3');
-            if (newMana < oldMana) {
-                createManaMist(manaIcon, 'out', '#1a1a1a');
-                card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
-            } else {
-                createManaMist(manaIcon, 'in', '#a78bfa');
-                card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
-                createRuneEffect(card3d);
-                setTimeout(() => {
-                    const rune = card3d.querySelector('.rune-container');
-                    if (rune) rune.remove();
+                if (cardOnScreen) {
+                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
+                    const manaIcon = cardOnScreen.querySelector('.potion-container');
+                    const moneyIcon = cardOnScreen.querySelector('.money-container');
+                    const card3d = cardOnScreen.querySelector('.nebula-sky');
                     resetcard3d(card3d);
-                }, 2500);
-            }
-        }
-        if (newMoney !== oldMoney) {
-            playMp3Sound('money.mp3');
-            const direction = newMoney > oldMoney ? 'in' : 'out';
-            createManaMist(moneyIcon, direction, '#fcd34d');
-            card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
-        }
-        triggerAnimation(card3d, 'animate');
-        animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
-        animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
-        animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
-    }
+                    if (newLife !== oldLife) {
+                        if (newLife < oldLife) {
+                            triggerCardPunch(card3d);
+                        }
+                        if (newLife > oldLife) {
+                            triggerCardLifeIn(card3d, vidaIcon);
+                        }
+                    }
+                    if (newMana !== oldMana) {
+                        playMp3Sound('mana.mp3');
+                        if (newMana < oldMana) {
+                            createManaMist(manaIcon, 'out', '#1a1a1a');
+                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark');
+                        }
+                        if (newMana > oldMana) {
+                            createManaMist(manaIcon, 'in', '#a78bfa');
+                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                            createRuneEffect(card3d);
+                            setTimeout(() => {
+                                const rune = card3d.querySelector('.rune-container');
+                                if (rune) {
+                                    rune.remove();
+                                }
+                            }, 2500);
+                        }
+                    }
+                    if (newMoney !== oldMoney) {
+                        playMp3Sound('money.mp3');
+                        if (newMoney > oldMoney) {
+                            createManaMist(moneyIcon, 'in', '#fcd34d');
+                        }
+                        if (newMoney < oldMoney) {
+                            createManaMist(moneyIcon, 'out', '#fcd34d');
+                        }
+                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+                    }
+                    triggerAnimation(card3d, 'animate');
+                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
+                }
+                cardData.attributes.vidaAtual = newLife;
+                cardData.attributes.manaAtual = newMana;
+                cardData.dinheiro = newMoney;
+                await saveData(CARD_STORE_NAME, cardData);
+                setTimeout(() => {
+                    updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
+                    updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
+                }, animationDuration);
+                statusModal.classList.add('hidden');
+                currentStatusEditingCardId = null;
+            });
 
-    // Fecha o modal imediatamente
-    statusModal.classList.add('hidden');
-
-    // 2. Espera as animações terminarem (a mais longa é 2500ms) antes de salvar
-    setTimeout(async () => {
-        // Atualiza os dados no objeto local
-        cardData.attributes.vidaAtual = newLife;
-        cardData.attributes.manaAtual = newMana;
-        cardData.dinheiro = newMoney;
-
-        // Salva os dados localmente no IndexedDB
-        await saveData(CARD_STORE_NAME, cardData);
-
-        // VERIFICA SE O CARD ESTÁ NA MESA ANTES DE SINCRONIZAR COM O FIREBASE
-        if (charactersOnTableIds.has(currentStatusEditingCardId)) {
-            const updatesForTable = {
-                currentLife: newLife,
-                currentMana: newMana,
-                money: newMoney
-            };
-            // Chama a função para sincronizar com a mesa
-            await updateCharacterOnTable(currentStatusEditingCardId, updatesForTable);
-        }
-
-        // Atualiza as barras de status após a animação dos números
-        updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
-        updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
-
-        currentStatusEditingCardId = null;
-    }, 2600); // Atraso de 2.6 segundos
-});
-          
             statusModalCloseBtn.addEventListener('click', () => {
                 statusModal.classList.add('hidden');
                 currentStatusEditingCardId = null;
@@ -4123,7 +3886,7 @@
                 if (!itemToUse || !character) return;
                 const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
                 if (!cardOnScreen) return;
-                const card3d = cardOnScreen.querySelector('.nebula-sky');
+                const card3d = cardOnScreen.querySelector('.card-3d');
                 resetcard3d(card3d);
                 card3d.classList.add('spill-container', 'glowing-card', 'glow-potion');
                 createPotionEffect(4, card3d);
@@ -4496,7 +4259,6 @@
                 jsonImportInput.value = null;
                 jsonImportInput.click();
             }
-
             jsonImportInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file || !currentStoreForImport) return;
@@ -4510,36 +4272,21 @@
                             throw new Error("Arquivo JSON inválido.");
                         }
 
-                        // Lógica aprimorada para importação de backup completo
+                        // Verifica se é um backup completo ou um card individual
                         if (currentStoreForImport === 'full_database') {
-
-                            // 1. Criar mapas para relacionar IDs antigos com novos
-                            const idMaps = {
-                                [CARD_STORE_NAME]: new Map(),
-                                [SPELL_STORE_NAME]: new Map(),
-                                [ITEM_STORE_NAME]: new Map()
-                            };
-
-                            const generateNewId = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
-
-                            // Preenche os mapas com novos IDs para cada item do backup
-                            for (const storeName in idMaps) {
-                                if (importedData[storeName]) {
-                                    for (const item of importedData[storeName]) {
-                                        idMaps[storeName].set(item.id, generateNewId());
-                                    }
+                            // Limpa o banco de dados atual para evitar duplicatas
+                            const storeNames = [CARD_STORE_NAME, SPELL_STORE_NAME, ITEM_STORE_NAME];
+                            for (const storeName of storeNames) {
+                                const allItems = await getData(storeName);
+                                for (const item of allItems) {
+                                    await removeData(storeName, item.id);
                                 }
                             }
 
-                            // 2. Processar e remapear os dados antes de salvar
-
-                            // Itens e Magias (não têm dependências)
-                            for (const storeName of [ITEM_STORE_NAME, SPELL_STORE_NAME]) {
+                            // Importa os dados para cada store
+                            for (const storeName of storeNames) {
                                 if (importedData[storeName]) {
                                     for (const item of importedData[storeName]) {
-                                        const oldId = item.id;
-                                        item.id = idMaps[storeName].get(oldId); // Atualiza o ID do próprio item
-
                                         // Converte imagens de Base64 de volta para ArrayBuffer
                                         if (item.imageBase64) {
                                             item.image = base64ToArrayBuffer(item.imageBase64);
@@ -4549,49 +4296,13 @@
                                             item.backgroundImage = base64ToArrayBuffer(item.backgroundImageBase64);
                                             delete item.backgroundImageBase64;
                                         }
-
                                         await saveData(storeName, item);
                                     }
                                 }
                             }
+                            showCustomAlert("Backup importado com sucesso!");
 
-                            // Personagens (têm dependências de itens e magias)
-                            if (importedData[CARD_STORE_NAME]) {
-                                for (const char of importedData[CARD_STORE_NAME]) {
-                                    const oldId = char.id;
-                                    char.id = idMaps[CARD_STORE_NAME].get(oldId); // Atualiza o ID do personagem
-
-                                    // Remapeia o array de itens com os novos IDs
-                                    if (char.items && Array.isArray(char.items)) {
-                                        char.items = char.items
-                                            .map(oldItemId => idMaps[ITEM_STORE_NAME].get(oldItemId))
-                                            .filter(Boolean); // .filter(Boolean) remove quaisquer IDs nulos/indefinidos
-                                    }
-
-                                    // Remapeia o array de magias com os novos IDs
-                                    if (char.spells && Array.isArray(char.spells)) {
-                                        char.spells = char.spells
-                                            .map(oldSpellId => idMaps[SPELL_STORE_NAME].get(oldSpellId))
-                                            .filter(Boolean);
-                                    }
-
-                                    // Converte imagens
-                                    if (char.imageBase64) {
-                                        char.image = base64ToArrayBuffer(char.imageBase64);
-                                        delete char.imageBase64;
-                                    }
-                                    if (char.backgroundImageBase64) {
-                                        char.backgroundImage = base64ToArrayBuffer(char.backgroundImageBase64);
-                                        delete char.backgroundImageBase64;
-                                    }
-
-                                    await saveData(CARD_STORE_NAME, char);
-                                }
-                            }
-
-                            showCustomAlert("Backup importado com sucesso! IDs foram atualizados.");
-
-                        } else { // Lógica para importação de card individual (já existente e correta)
+                        } else { // Lógica para importação de card individual (já existente)
                             importedData.id = Date.now().toString();
 
                             if (importedData.imageBase64 && importedData.imageMimeType) {
@@ -4603,7 +4314,6 @@
                                 delete importedData.backgroundImageBase64;
                             }
                             await saveData(currentStoreForImport, importedData);
-                            showCustomAlert("Card importado com sucesso!");
                         }
 
                         // Atualiza todas as visualizações
@@ -4617,7 +4327,6 @@
                         showCustomAlert("Erro ao importar o arquivo. Verifique se é um JSON válido.");
                     } finally {
                         currentStoreForImport = null;
-                        jsonImportInput.value = null; // Limpa o input para permitir selecionar o mesmo arquivo novamente
                     }
                 };
                 reader.readAsText(file);
@@ -4653,8 +4362,6 @@
                     alertBox.addEventListener('transitionend', () => alertBox.remove());
                 }, 3000);
             }
-            // Localize esta função no seu index.html
-
             async function initializeApp() {
                 showSplash();
                 try {
@@ -4663,10 +4370,6 @@
                     await renderCardsAndThumbnails();
                     await renderSpellCards();
                     await renderItemsAndThumbnails();
-
-                    // ADICIONE ESTA LINHA AQUI
-                    listenForTableUpdates(); // Inicia a sincronização com a mesa
-
                     showDisplayView();
                     setTimeout(hideSplash, 1000);
                 } catch (e) {
@@ -4838,197 +4541,78 @@
                 buyModal.classList.remove('hidden');
             }
 
-           /**
- * Inicializa o efeito de paralaxe 3D para um contêiner de card,
- * adicionando controle tanto por mouse/toque quanto pelo acelerômetro do dispositivo.
- * @param {HTMLElement} container - O elemento .nebula-sky que contém as camadas do efeito.
- */
-function initializeNebulaEffect(container) {
-    if (!container) return;
+            function initializeNebulaEffect(container) {
+                if (!container) return; // Segurança extra
 
-    // Seleciona todos os elementos necessários para a animação
-    const starsFar = container.querySelector('#stars-far');
-    const starsMedium = container.querySelector('#stars-medium');
-    const starsNear = container.querySelector('#stars-near');
-    const glow = container.querySelector('#glow-overlay');
-    const txtItem = container.querySelector('#txtItem');
-    const txtMagia = container.querySelector('#txtMagia');
+                const starsFar = container.querySelector('#stars-far');
+                const starsMedium = container.querySelector('#stars-medium');
+                const starsNear = container.querySelector('#stars-near');
+                const glow = container.querySelector('#glow-overlay');
+                const txtItem = container.querySelector('#txtItem');
 
-    // Validação para garantir que todos os elementos internos existem
-    if (!starsFar || !starsMedium || !starsNear || !glow) {
-        console.error("Elementos essenciais para o efeito de nebulosa não foram encontrados.");
-        return;
-    }
 
-    const maxRotate = 20; // Rotação máxima do card em graus
-    let isInteracting = false; // Flag para desativar o acelerômetro durante o arrastar manual
-
-    // --- Lógica de Mouse e Toque (Arrastar) ---
-    const factorFar = 0.02;
-    const factorMedium = 0.04;
-    const factorNear = 0.06;
-
-    // Função que atualiza a rotação e a posição das camadas com base nas coordenadas
-    const updateLayers = (x, y) => {
-        const rotateY = (x / (container.offsetWidth / 2)) * maxRotate;
-        const rotateX = -(y / (container.offsetHeight / 2)) * maxRotate;
-        container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
-        starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
-        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-        starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-    };
-
-    const startInteraction = () => { isInteracting = true; container.style.transition = 'transform 0.1s linear'; };
-    const moveInteraction = (e) => {
-        if (!isInteracting) return;
-        e.preventDefault();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const rect = container.getBoundingClientRect();
-        const x = clientX - rect.left - rect.width / 2;
-        const y = clientY - rect.top - rect.height / 2;
-        updateLayers(x, y);
-    };
-    
-    // --- FUNÇÃO ATUALIZADA ---
-    // Agora, esta função reseta a posição do card ao soltar o mouse/toque.
-    const endInteraction = () => {
-        isInteracting = false;
-        container.style.transition = 'transform 0.4s ease-out';
-        
-        // Reseta a rotação do card principal para a posição neutra
-        container.style.transform = `rotateX(0deg) rotateY(0deg)`;
-        
-        // Reseta a posição das camadas internas para o centro
-        starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
-        starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
-        starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
-        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(0px, 0px)`;
-        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(0px, 0px)`;
-    };
-
-    // Adiciona os listeners para mouse e toque
-    container.addEventListener('mousedown', startInteraction);
-    container.addEventListener('mousemove', moveInteraction);
-    container.addEventListener('mouseup', endInteraction);
-    container.addEventListener('mouseleave', endInteraction);
-    container.addEventListener('touchstart', startInteraction);
-    container.addEventListener('touchmove', moveInteraction);
-    container.addEventListener('touchend', endInteraction);
-    container.addEventListener('touchcancel', endInteraction);
-
-    // --- Lógica do Acelerômetro (Inclinação) ---
-    const handleOrientation = (event) => {
-        if (isInteracting) return; // Não executa se o usuário estiver arrastando o card
-
-        const gamma = event.gamma; // Inclinação esquerda/direita (-90 a 90)
-        const beta = event.beta;   // Inclinação frente/trás (-180 a 180)
-
-        // Limita os valores de inclinação para um movimento mais suave e controlado
-        const clampedGamma = Math.max(-45, Math.min(45, gamma));
-        const clampedBeta = Math.max(-45, Math.min(45, beta));
-
-        // Converte a inclinação em rotação para o card
-        const rotateY = (clampedGamma / 45) * maxRotate;
-        const rotateX = (clampedBeta / 45) * -maxRotate;
-        
-        container.style.transition = 'transform 0.1s linear'; // Transição rápida para responsividade
-        container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        
-        // Movimenta as camadas internas com base na inclinação para criar o efeito 3D
-        const x = (clampedGamma / 45) * (container.offsetWidth / 4);
-        const y = (clampedBeta / 45) * (container.offsetHeight / 4);
-        starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
-        starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
-        if (txtItem) txtItem.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-        if (txtMagia) txtMagia.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-        starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-    };
-
-    // Verifica se o navegador suporta o evento e lida com as permissões necessárias
-    if (window.DeviceOrientationEvent) {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS 13+ requer um clique do usuário para pedir permissão
-            const permissionButton = document.createElement('button');
-            permissionButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Ativar Controle por Movimento';
-            permissionButton.className = 'permission-button';
-            
-            container.appendChild(permissionButton);
-
-            permissionButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Impede que o clique no botão ative outros eventos do card
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            //window.addEventListener('deviceorientation', handleOrientation);
-                            permissionButton.remove();
-                        } else {
-                            alert('Permissão para usar sensores de movimento foi negada.');
-                            permissionButton.remove();
-                        }
-                    })
-                    .catch(console.error);
-            });
-        } else {
-            // Outros navegadores (como Chrome no Android) não precisam de permissão explícita
-            //window.addEventListener('deviceorientation', handleOrientation);
-        }
-    }
-}
-
-            async function updateCharacterOnTable(charId, updates) {
-                // As constantes 'database', 'ref', e 'update' já são importadas do Firebase
-                const { database, ref, update } = window.firebaseDB;
-
-                // Cria a referência para o personagem específico na mesa
-                const charOnTableRef = ref(database, `gameTables/default-table/characters/${charId}`);
-
-                try {
-                    // Usa a função 'update' para alterar apenas os campos especificados
-                    // Isso evita apagar outros dados que possam existir no nó do personagem na mesa
-                    await update(charOnTableRef, updates);
-                    console.log(`Dados do personagem ${charId} atualizados na mesa.`);
-                } catch (error) {
-                    console.error("Falha ao atualizar o personagem na mesa:", error);
-                    // Opcional: Mostrar um alerta para o usuário
-                    showCustomAlert("Não foi possível sincronizar com a mesa.");
+                // Garante que os elementos filhos foram encontrados antes de continuar
+                if (!starsFar || !starsMedium || !starsNear || !glow) {
+                    console.error("Elementos do efeito de nebulosa não encontrados dentro do container.");
+                    return;
                 }
+
+                const maxRotate = 20;
+                const factorFar = 0.02;
+                const factorMedium = 0.04;
+                const factorNear = 0.06;
+                let isInteracting = false;
+
+                const updateLayers = (x, y) => {
+                    const rotateY = (x / (container.offsetWidth / 2)) * maxRotate;
+                    const rotateX = -(y / (container.offsetHeight / 2)) * maxRotate;
+                    container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
+                    starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
+                    txtItem.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
+                    starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
+
+                };
+
+                const startInteraction = (e) => {
+                    isInteracting = true;
+                    container.style.transition = 'transform 0.1s linear';
+                };
+
+                const moveInteraction = (e) => {
+                    if (!isInteracting) return;
+                    e.preventDefault();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const rect = container.getBoundingClientRect();
+                    const x = clientX - rect.left - rect.width / 2;
+                    const y = clientY - rect.top - rect.height / 2;
+                    //glow.style.background = `radial-gradient(circle at ${clientX - rect.left}px ${clientY - rect.top}px, rgba(255,255,255,0.15), transparent 40%)`;
+                    updateLayers(x, y);
+                };
+
+                const endInteraction = () => {
+                    isInteracting = false;
+                    container.style.transition = 'transform 0.4s ease-out';
+                    container.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                    starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
+                    starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
+                    starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
+                };
+
+                // Adiciona os eventos
+                container.addEventListener('mousedown', startInteraction);
+                container.addEventListener('mousemove', moveInteraction);
+                container.addEventListener('mouseup', endInteraction);
+                container.addEventListener('mouseleave', endInteraction);
+                container.addEventListener('touchstart', startInteraction);
+                container.addEventListener('touchmove', moveInteraction);
+                container.addEventListener('touchend', endInteraction);
+                container.addEventListener('touchcancel', endInteraction);
             }
             // --- FIX ENDS HERE ---
-            var IsMesa = false;
-            // --- ADICIONE ESTA NOVA FUNÇÃO ---
-            function updateSendToTableButtonState(charId) {
-                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${charId}"]`);
-                if (!cardOnScreen) return;
-
-                const sendBtn = cardOnScreen.querySelector('#send-to-table-btn');
-                if (!sendBtn) return;
-
-                // Se o ID do personagem está na nossa lista da mesa
-                if (charactersOnTableIds.has(charId)) {
-                    sendBtn.innerHTML = '<i class="fas fa-sign-out-alt" style="font-size: 25px;"></i>';
-                    sendBtn.title = "Remover da Mesa";
-                    sendBtn.classList.add('on-table'); // Classe para lógica e estilo
-                    IsMesa = true;
-                    console.log(IsMesa);
-                } else {
-                    sendBtn.innerHTML = '<i class="fas fa-dungeon" style="font-size: 25px;"></i>';
-                    sendBtn.title = "Enviar para a Mesa";
-                    sendBtn.classList.remove('on-table');
-                    IsMesa = false;
-                    console.log(IsMesa);
-                }
-            }
-            // --- FIM DA NOVA FUNÇÃO ---
         });
     </script>
 </body>
 
-
 </html>
-
-
-
-
