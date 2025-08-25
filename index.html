@@ -2747,7 +2747,7 @@
                 if (card3d) {
                     card3d.addEventListener('click', (e) => {
                         if (e.target.closest('[data-action]') || e.target.closest('.sidebar')) return;
-                        card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                        //card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
                     });
                 }
                 const spellSidebar = cardDiv.querySelector('#spell-sidebar');
@@ -4568,7 +4568,7 @@
                     container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                     starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
                     starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
-                    txtItem.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
+                    if(txtItem) txtItem.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
                     starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
 
                 };
@@ -4597,6 +4597,7 @@
                     starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
                     starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
                     starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
+                    if(txtItem) txtItem.style.transform = `translateZ(-20px) translate(0px, 0px)`;
                 };
 
                 // Adiciona os eventos
