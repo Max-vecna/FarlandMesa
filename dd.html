@@ -1,232 +1,40 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fundo de Céu Nebuloso com Paralaxe 3D</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Estilo base para a página de demonstração */
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #0c0a09; /* Fundo quase preto */
-            color: #f3f4f6;
-            padding: 2rem;
-            /* Adiciona perspectiva ao corpo para o efeito 3D */
-            perspective: 1000px;
-        }
 
-        /* O contêiner principal com o efeito */
-        .nebula-sky {
-            position: relative;
-            width: 100%;
-            max-width: 600px; /* Largura máxima para a demonstração */
-            height: 400px;
-            border-radius: 1.5rem; /* Cantos bem arredondados */
-            overflow: hidden; /* ESSENCIAL para conter o efeito */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 
-                        inset 0 0 1px 1px rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: #000; /* Fundo preto base */
-            
-            /* Habilita transformações 3D para os filhos e suaviza o movimento */
-            transform-style: preserve-3d;
-            transition: transform 0.2s ease-out; /* Transição mais suave para o retorno */
-            cursor: grab; /* Indica que o elemento é arrastável */
-        }
-        .nebula-sky:active {
-            cursor: grabbing; /* Muda o cursor ao clicar */
-        }
+<div class="card-background">
+  <div class="particles"></div>
+</div>
 
-        /* Contêiner para as camadas de paralaxe */
-        .parallax-container {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            /* Garante que as estrelas também fiquem no espaço 3D */
-            transform-style: preserve-3d;
-        }
+<style>
+.card-background {
+  width: 300px;
+  height: 450px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
 
-        /* Estilo base para todas as camadas de estrelas */
-        .stars-layer {
-            position: absolute;
-            top: -25%; left: -25%; /* Expandido para não mostrar bordas ao mover */
-            width: 150%; height: 150%;
-            background-repeat: repeat;
-            transition: transform 0.2s ease-out; /* Suaviza o movimento do paralaxe */
-        }
-        
-        /* Camada de brilho que segue o mouse */
-        #glow-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15), transparent 40%);
-            opacity: 0;
-            transition: opacity 0.2s ease-out;
-            pointer-events: none; /* Garante que não interfira com o mouse */
-        }
+  /* Degradê mágico neutro */
+  background: radial-gradient(circle at center, 
+              rgba(60, 90, 130, 0.9) 0%, 
+              rgba(20, 30, 50, 1) 100%);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6) inset;
+}
 
-        .nebula-sky:active #glow-overlay {
-            opacity: 1;
-        }
+/* Camada de partículas */
+.particles {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle, rgba(255,255,255,0.4) 2px, transparent 3px),
+    radial-gradient(circle, rgba(200,220,255,0.3) 1px, transparent 2px),
+    radial-gradient(circle, rgba(150,200,255,0.2) 1px, transparent 2px);
+  background-size: 120px 120px, 200px 200px, 80px 80px;
+  animation: sparkle 12s linear infinite;
+  opacity: 0.6;
+}
 
-        /* Camada da Nebulosa (plano de fundo principal) */
-        #nebula-bg {
-            background-image: 
-                radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.4) 0%, transparent 70%), /* Roxo */
-                radial-gradient(ellipse at 20% 90%, rgba(236, 72, 153, 0.3) 0%, transparent 60%), /* Rosa */
-                radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 60%); /* Azul */
-            /* Move a nebulosa para trás no espaço 3D */
-            transform: translateZ(-50px);
-        }
-
-        /* Camada de estrelas distantes */
-        #stars-far {
-             background-image: 
-                radial-gradient(1px 1px at 10% 20%, white, transparent),
-                radial-gradient(1px 1px at 85% 15%, white, transparent),
-                radial-gradient(1px 1px at 55% 75%, rgba(255,255,255,0.7), transparent),
-                radial-gradient(1px 1px at 95% 45%, rgba(255,255,255,0.8), transparent),
-                radial-gradient(1px 1px at 45% 5%, rgba(255,255,255,0.7), transparent),
-                radial-gradient(1px 1px at 5% 55%, rgba(255,255,255,0.8), transparent),
-                radial-gradient(1px 1px at 30% 35%, white, transparent),
-                radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.7), transparent);
-            background-size: 400px 400px;
-            transform: translateZ(-40px);
-        }
-
-        /* Camada de estrelas médias */
-        #stars-medium {
-            background-image: 
-                radial-gradient(2px 2px at 15% 95%, rgba(255,255,255,0.9), transparent),
-                radial-gradient(2px 2px at 45% 55%, white, transparent),
-                radial-gradient(2px 2px at 80% 90%, rgba(255,255,255,0.9), transparent),
-                radial-gradient(2px 2px at 65% 25%, white, transparent),
-                radial-gradient(2px 2px at 25% 10%, rgba(255,255,255,0.8), transparent);
-            background-size: 500px 500px;
-            transform: translateZ(-20px);
-        }
-
-        /* Camada de estrelas próximas */
-        #stars-near {
-            background-image: 
-                radial-gradient(3px 3px at 5% 5%, rgba(255,255,255,0.6), transparent),
-                radial-gradient(3px 3px at 92% 72%, rgba(255,255,255,0.6), transparent),
-                radial-gradient(3px 3px at 50% 40%, white, transparent);
-            background-size: 600px 600px;
-            transform: translateZ(0px);
-        }
-        
-        /* Estilo do texto */
-        .content {
-            position: relative;
-            z-index: 10;
-            padding: 2rem;
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
-            /* Coloca o texto um pouco à frente para acentuar o 3D */
-            transform: translateZ(20px);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="nebula-sky">
-        <div class="parallax-container">
-            <div id="nebula-bg" class="stars-layer"></div>
-            <div id="stars-far" class="stars-layer"></div>
-            <div id="stars-medium" class="stars-layer"></div>
-            <div id="stars-near" class="stars-layer"></div>
-        </div>
-        <div id="glow-overlay"></div>
-        <div class="content">
-            Céu Nebuloso
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.querySelector('.nebula-sky');
-            const starsFar = document.getElementById('stars-far');
-            const starsMedium = document.getElementById('stars-medium');
-            const starsNear = document.getElementById('stars-near');
-            const glow = document.getElementById('glow-overlay');
-
-            const maxRotate = 15; // Aumentei um pouco a rotação máxima
-            const factorFar = 0.02;
-            const factorMedium = 0.04;
-            const factorNear = 0.06;
-
-            let isInteracting = false;
-
-            const updateLayers = (x, y) => {
-                const rotateY = (x / (container.offsetWidth / 2)) * maxRotate;
-                const rotateX = -(y / (container.offsetHeight / 2)) * maxRotate;
-                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-
-                starsFar.style.transform = `translateZ(-40px) translate(${x * factorFar}px, ${y * factorFar}px)`;
-                starsMedium.style.transform = `translateZ(-20px) translate(${x * factorMedium}px, ${y * factorMedium}px)`;
-                starsNear.style.transform = `translateZ(0px) translate(${x * factorNear}px, ${y * factorNear}px)`;
-            };
-
-            const startInteraction = (e) => {
-                isInteracting = true;
-                container.style.transition = 'transform 0.1s linear'; // Transição rápida durante o movimento
-            };
-
-            const moveInteraction = (e) => {
-                if (!isInteracting) return;
-                e.preventDefault(); // Previne o scroll da página no celular
-
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const rect = container.getBoundingClientRect();
-                const x = clientX - rect.left - rect.width / 2;
-                const y = clientY - rect.top - rect.height / 2;
-                
-                glow.style.background = `radial-gradient(circle at ${clientX - rect.left}px ${clientY - rect.top}px, rgba(255,255,255,0.15), transparent 40%)`;
-
-                updateLayers(x, y);
-            };
-
-            const endInteraction = () => {
-                isInteracting = false;
-                container.style.transition = 'transform 0.4s ease-out'; // Transição suave para o retorno
-                container.style.transform = `rotateX(0deg) rotateY(0deg)`;
-                
-                // Reseta as estrelas também
-                starsFar.style.transform = `translateZ(-40px) translate(0px, 0px)`;
-                starsMedium.style.transform = `translateZ(-20px) translate(0px, 0px)`;
-                starsNear.style.transform = `translateZ(0px) translate(0px, 0px)`;
-            };
-
-            // Eventos para Desktop
-            container.addEventListener('mousedown', startInteraction);
-            container.addEventListener('mousemove', moveInteraction);
-            container.addEventListener('mouseup', endInteraction);
-            container.addEventListener('mouseleave', endInteraction);
-
-            // Eventos para Celular (Touch)
-            container.addEventListener('touchstart', startInteraction);
-            container.addEventListener('touchmove', moveInteraction);
-            container.addEventListener('touchend', endInteraction);
-            container.addEventListener('touchcancel', endInteraction);
-        });
-    </script>
-
-</body>
-</html>
+/* Animação suave para dar vida às partículas */
+@keyframes sparkle {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 200px 400px, 300px 200px, 150px 250px; }
+}
+</style>
