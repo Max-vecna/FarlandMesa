@@ -25,7 +25,7 @@ function getPredominantColorAndPalette(imageUrl) {
                 let [h, s, l] = rgbToHsl(avgR, avgG, avgB);
                 const isLight = l > 0.5;
                 resolve({
-                    cardBg: isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(31, 41, 55, 0.9)',
+                    cardBg: isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(31, 41, 55, 0.5)',
                     highlightColor: hslToRgb(h, Math.min(s * 1.5, 1), isLight ? Math.max(l * 0.7, 0.3) : Math.min(l * 1.5, 0.7)),
                     textColor: isLight ? 'rgb(31, 41, 55)' : 'rgb(243, 244, 246)',
                     borderColor: hslToRgb(h, s, isLight ? Math.max(l * 0.7, 0.3) : Math.min(l * 1.5, 0.7))
@@ -115,13 +115,15 @@ function initializeNebulaEffect(container) {
     };
 
     const startInteraction = (e) => {
-        isInteracting = true;
-        container.style.transition = 'transform 0.1s linear';
-    };
+    if (container.classList.contains('parallax-disabled')) return; // Adicione esta linha
+    isInteracting = true;
+    container.style.transition = 'transform 0.1s linear';
+};
 
-    const moveInteraction = (e) => {
-        if (!isInteracting) return;
-        e.preventDefault();
+const moveInteraction = (e) => {
+    if (container.classList.contains('parallax-disabled')) return; // Adicione esta linha
+    if (!isInteracting) return;
+    e.preventDefault();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const rect = container.getBoundingClientRect();
@@ -152,11 +154,14 @@ function initializeNebulaEffect(container) {
     container.addEventListener('touchcancel', endInteraction);
 }
 
+// No arquivo: card-renderer.js
+
 export async function createCardElement(cardData) {
     const cardWrapper = document.createElement('div');
     cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
     const cardDiv = document.createElement('div');
-    cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+    // Adicionado 'relative' para garantir que o modal absoluto se posicione corretamente
+    cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card relative'; 
     cardDiv.dataset.cardId = cardData.id;
     cardDiv.style.backgroundImage = `url(${cardData.backgroundURL})`;
     let palette = {
@@ -190,10 +195,14 @@ export async function createCardElement(cardData) {
             .join('');
     }
     var imgIs = cardData.backgroundURL.includes('placehold.co');
+    var imgIsPerson = cardData.imageURL != "" || cardData.imageURL != null
     const mainAttributes = ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'];
     const attributeValues = mainAttributes.map(attr => parseInt(cardData.attributes[attr]) || 0);
     const maxAttributeValue = Math.max(...attributeValues, 1);
     const cdValue = 10 + (parseInt(cardData.level) || 0) + (parseInt(cardData.attributes.sabedoria) || 0);
+    
+    // --- INÍCIO DA ALTERAÇÃO ---
+    // A estrutura do innerHTML foi reorganizada. O modal agora está no final.
     cardDiv.innerHTML = `
     <div class="card-3d-container">
         <div class="nebula-sky">
@@ -205,38 +214,31 @@ export async function createCardElement(cardData) {
             </div>
             <div id="glow-overlay"></div>
             <div class="card-3d">
-                <div class="card-front" style="border-color: ${palette.borderColor}">
-                    <div class="rounded-3xl relative w-full h-full p-4 ex-max"
-                        style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between; background-position: center;">
-                        <div id="spell-sidebar" class="sidebar sidebar-left">
+                <div class="card-front" style="border-color: ${palette.borderColor}; background-image:${imgIsPerson ? `url(${cardData.imageURL})` : 'transparent'} !important; background-position: center; background-size: cover;">
+                    <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, #00000085,transparent, #00000085, #000000ba);height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; ">
+                        
+                    <div id="spell-sidebar" class="sidebar sidebar-left">
                             <div class="sidebar-content">
-                                <div class="items-center justify-center gap-2 mb-4"
-                                    style="margin-right: -40px; display: flex; flex-direction: column;">
+                                <div class="items-center justify-center gap-2 mb-4" style="margin-right: -40px; display: flex; flex-direction: column;">
                                     <h4 class="sidebar-title" style="margin: 0">Grimório</h4>
-                                    <button class="manage-btn-sidebar" data-action="manage-spells"
-                                        title="Gerenciar Grimório">
+                                    <button class="manage-btn-sidebar" data-action="manage-spells" title="Gerenciar Grimório">
                                         <i class="fas fa-book-open" style="font-size: 20px;"></i>
                                     </button>
                                 </div>
-                                <div id="spell-sidebar-content" class="sidebar-list"
-                                    style="margin-right: -40px; direction: rtl;"></div>
+                                <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px; direction: rtl;"></div>
                             </div>
-                            <button class="sidebar-toggle"
-                                style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))">
+                            <button class="sidebar-toggle" style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
                         <div id="item-sidebar" class="sidebar sidebar-right">
-                            <button class="sidebar-toggle"
-                                style="background: rgb(245 158 11 / var(--tw-border-opacity, 1));">
+                            <button class="sidebar-toggle" style="background: rgb(245 158 11 / var(--tw-border-opacity, 1));">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                             <div class="sidebar-content">
-                                <div class="items-center justify-center gap-2 mb-4"
-                                    style="margin-left: -40px; display: flex; flex-direction: column;">
+                                <div class="items-center justify-center gap-2 mb-4" style="margin-left: -40px; display: flex; flex-direction: column;">
                                     <h4 class="sidebar-title" style="margin: 0">Inventário</h4>
-                                    <button class="manage-btn-sidebar" data-action="manage-inventory"
-                                        title="Gerenciar Inventário">
+                                    <button class="manage-btn-sidebar" data-action="manage-inventory" title="Gerenciar Inventário">
                                         <i class="fas fa-box" style="font-size: 20px;"></i>
                                     </button>
                                 </div>
@@ -263,137 +265,109 @@ export async function createCardElement(cardData) {
                                 </svg>
                                 <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
                                     <span data-status="mana">${cardData.attributes.manaAtual || '?'}</span>
-                                    <span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.mana
-                                        || '?'}</span>
+                                    <span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.mana || '?'}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold"
-                            data-action="open-status-modal" data-local="life" title="Alterar Vida">
+                        <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" data-local="life" title="Alterar Vida">
                             <div class="icon-container heart-container">
                                 <svg class="heart-svg" viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                 </svg>
                                 <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
                                     <span data-status="life">${cardData.attributes.vidaAtual || '?'}</span>
-                                    <span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.vida
-                                        || '?'}</span>
+                                    <span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.vida || '?'}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer"
-                            data-action="toggle-lore" title="Ver História">
+                        <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer" data-action="toggle-lore" title="Ver História">
                             <i class="fas fa-book"></i>
                         </div>
-                        <div class="absolute top-20 right-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-teal-200 cursor-pointer"
-                            data-action="open-grimoire-modal" title="Abrir Grimório">
+                        <div class="absolute top-20 right-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-teal-200 cursor-pointer" data-action="open-grimoire-modal" title="Abrir Grimório">
                             <i class="fas fa-book-open"></i>
                         </div>
-
-                        <div class="absolute money-container top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold"
-                            data-action="open-status-modal" data-local="money" title="Alterar Dinheiro"
-                            style=" writing-mode: vertical-rl; text-orientation: upright;">
+                        <div class="absolute money-container top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" data-local="money" title="Alterar Dinheiro" style=" writing-mode: vertical-rl; text-orientation: upright;">
                             💰$<span data-status="money">${cardData.dinheiro || 0}</span>
                         </div>
                         <div class="text-center" style="width: 60%;">
                             <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3>
-                            <div class="rpg-card-title-divider"
-                                style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%">
-                            </div>
+                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"> </div>
                             <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p>
                             <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p>
-                        </div>
-                        <div class="wave-container flex justify-center img-max"
-                            style="position: relative; width: 180px !important; height: 180px;"><img
-                                style="border-color: ${palette.borderColor}; z-index: 1; height: 180px"
-                                src="${cardData.imageURL}"
-                                onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';"
-                                alt="Imagem do personagem"
-                                class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
-                        <div class="p-3 rounded-3xl text-center w-full rpg-card-frame"
-                            style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
-                            <div class="grid grid-cols-5 gap-x-4 gap-y-1 text-xs my-2 mb-4">
-                                <div class="text-center">CA<br>${cardData.attributes.armadura || 0}</div>
-                                <div class="text-center">ES<br>${cardData.attributes.esquiva || 0}</div>
-                                <div class="text-center">BL<br>${cardData.attributes.bloqueio || 0}</div>
-                                <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
-                                <div class="text-center font-bold text-indigo-300">CD<br>${cdValue}</div>
-                            </div>
-                            ${mainAttributes.map(key => {
-                            const value = parseInt(cardData.attributes[key]) || 0; const percentage = maxAttributeValue > 0
-                            ? (value * 100) / maxAttributeValue : 0;
-                            return `
-                            <div class="mt-2 flex items-center space-x-2 text-xs">
-                                <span class="font-bold w-8">${key.slice(0, 3).toUpperCase()}</span>
-                                <div class="stat-bar flex-grow" style="margin-top: 0">
-                                    <div class="stat-fill"
-                                        style="width: ${percentage}%; background: ${palette.borderColor}"></div>
+                        </div> 
+                        
+                        <div class="">
+                            <div class="pb-4 scrollable-content text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px; scroll-snap-type: x mandatory;">
+                                <div class="rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div class="grid grid-cols-5 gap-x-4 gap-y-1 text-xs my-2 mb-4">
+                                        <div class="text-center">CA<br>${cardData.attributes.armadura || 0}</div>
+                                        <div class="text-center">ES<br>${cardData.attributes.esquiva || 0}</div>
+                                        <div class="text-center">BL<br>${cardData.attributes.bloqueio || 0}</div>
+                                        <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
+                                        <div class="text-center font-bold text-indigo-300">CD<br>${cdValue}</div>
+                                    </div>
+                                    ${mainAttributes.map(key => {
+                                    const value = parseInt(cardData.attributes[key]) || 0; const percentage = maxAttributeValue > 0 ? (value * 100) / maxAttributeValue : 0;
+                                    return `
+                                    <div class="mt-2 flex items-center space-x-2 text-xs">
+                                        <span class="font-bold w-8">${key.slice(0, 3).toUpperCase()}</span>
+                                        <div class="stat-bar flex-grow" style="margin-top: 0">
+                                            <div class="stat-fill" style="width: ${percentage}%; background: ${palette.borderColor}"></div>
+                                        </div>
+                                        <span class="text-xs font-bold ml-auto">${value} / ${maxAttributeValue}</span>
+                                    </div>
+                                    `;
+                                    }).join('')}
+                                </div>                                                
+                                <div class="pb-4 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div class="pericias-scroll-area flex flex-col gap-2" style="overflow-y: auto; max-height: 170px;">
+                                        ${periciasHtml}
+                                    </div>
                                 </div>
-                                <span class="text-xs font-bold ml-auto">${value} / ${maxAttributeValue}</span>
-                            </div>
-                            `;
-                            }).join('')}
-                            <div class="pericias-scroll-area flex flex-col gap-2 mt-2"
-                                style="max-height: 100px; overflow-y: auto;">
-                                <div class="flex items-center justify-center w-full"></div>
-                                ${periciasHtml}
                             </div>
                         </div>
+
+
                         <div class="lore-card" data-action="toggle-lore">
-                            <h4 style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">História
-                            </h4>
+                            <h4 style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">História</h4>
                             <p style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">
                                 ${cardData.lore?.historia || 'Nenhuma história definida.'}</p>
-                            <h4 class="mt-4"
-                                style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">
-                                Personalidade</h4>
-                            <p style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">
-                                ${cardData.lore?.personalidade || 'Nenhuma personalidade definida.'}</p>
-                            <h4 class="mt-4"
-                                style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">Motivação
-                            </h4>
-                            <p style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">
-                                ${cardData.lore?.motivacao || 'Nenhuma motivação definida.'}</p>
-                        </div>
-                        <div class="grimoire-modal">
-                            <div class="grimoire-modal-content">
-                                <button class="grimoire-modal-close-btn" data-action="close-grimoire-modal">&times;</button>
-                                <h3 class="text-2xl font-bold text-teal-300 text-center" style="position: absolute; top: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 10;">Grimório</h3>
-                                
-                                <div class="grimoire-carousel-wrapper">
-                                    <div class="grimoire-carousel-viewport">
-                                        <div class="grimoire-carousel">
-                                            </div>
-                                    </div>
-                                    <div class="grimoire-carousel-nav">
-                                        <button class="grimoire-nav-button" id="grimoirePrevBtn">Anterior</button>
-                                        <button class="grimoire-nav-button" id="grimoireNextBtn">Próximo</button>
-                                    </div>
-                                </div>
-                            </div>
+                            <h4 class="mt-4" style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">Personalidade</h4>
+                            <p style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;"> ${cardData.lore?.personalidade || 'Nenhuma personalidade definida.'}</p>
+                            <h4 class="mt-4" style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">Motivação</h4>
+                            <p style="text-align:justify;white-space:pre-line;overflow-wrap:break-word;">${cardData.lore?.motivacao || 'Nenhuma motivação definida.'}</p>
                         </div>
                     </div>
                 </div>
-                <div class="card-back divPartculas"
-                    style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply; background-position: center;">
-                    <div class="back-content p-4 text-left"
-                        style="display: flex; border: 5px solid rgb(120, 129, 93); align-items: center; justify-content: center;">
+                <div class="card-back divPartculas" style="background-image:${!imgIs ? `url(${cardData.backgroundURL})` : 'transparent'} !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply; background-position: center;">
+                    <div class="back-content p-4 text-left" style="display: flex; border: 5px solid rgb(120, 129, 93); align-items: center; justify-content: center;">
                         <i class="fas fa-shield-alt" style="font-size: 200px; opacity: .2;"></i>
                     </div>
                 </div>
             </div>
         </div>
-    </div>`;
+    </div>
+    
+    <div class="grimoire-modal">
+        <div class="grimoire-modal-content">
+            <button class="grimoire-modal-close-btn" data-action="close-grimoire-modal">&times;</button>
+            <h3 class="text-2xl font-bold text-teal-300 text-center" style="position: absolute; top: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 10;">Grimório</h3>
+            <div class="grimoire-carousel-wrapper">
+                <div class="grimoire-carousel-viewport">
+                    <div class="grimoire-carousel"></div>
+                </div>
+                <div class="grimoire-thumbnail-nav"></div>
+               <div class="grimoire-carousel-nav" style="display: none !important;">
+                    <button class="grimoire-nav-button" id="grimoirePrevBtn">Anterior</button>
+                    <button class="grimoire-nav-button" id="grimoireNextBtn">Próximo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    // --- FIM DA ALTERAÇÃO ---
 
-    cardWrapper.appendChild(cardDiv);
-    const card3d = cardDiv.querySelector('.card-3d');
-    if (card3d) {
-        card3d.addEventListener('click', (e) => {
-            if (e.target.closest('[data-action]') || e.target.closest('.sidebar')) return;
-            //card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
-        });
-    }
+    cardWrapper.appendChild(cardDiv);    
 
     const spellSidebar = cardDiv.querySelector('#spell-sidebar');
     const itemSidebar = cardDiv.querySelector('#item-sidebar');
@@ -411,37 +385,18 @@ export async function createCardElement(cardData) {
                 e.stopPropagation();
                 itemSidebar.classList.toggle('expanded');
             });
-    }
+    }   
 
-    cardDiv.addEventListener('click', async (e) => {
-        const itemEl = e.target.closest('.sidebar-item');
-        if (!itemEl) return;
-        const type = itemEl.dataset.type;
-        const templateId = itemEl.dataset.templateId;
-        let itemData;
-        if (type === 'item') {
-            itemData = await getData(ITEM_STORE_NAME, templateId);
-        } else {
-            itemData = await getData(SPELL_STORE_NAME, templateId);
-        }
-        if (itemData) {
-            await showExpandedCardInModal(itemData, type, cardData.id);
-        }
-    });
-
-    // --- INÍCIO DA SOLUÇÃO ---
-    // Lista de seletores para todas as áreas que precisam de rolagem independente.
     const scrollableAreas = [
-        '#spell-sidebar-content', // Sidebar de Magias (Grimório)
-        '#item-sidebar-content',  // Sidebar de Itens (Inventário)
-        '.pericias-scroll-area',   // Área de rolagem das Perícias
-        '.lore-card'               // Card de História/Lore que também pode ter scroll
+        '#spell-sidebar-content',
+        '#item-sidebar-content',
+        '.pericias-scroll-area',
+        '.lore-card'
     ];
 
     scrollableAreas.forEach(selector => {
         const element = cardDiv.querySelector(selector);
         if (element) {
-            // Impede que eventos de clique e toque "borbulhem" para o container do parallax.
             ['mousedown', 'touchstart'].forEach(eventType => {
                 element.addEventListener(eventType, (e) => {
                     e.stopPropagation();
@@ -449,13 +404,7 @@ export async function createCardElement(cardData) {
             });
         }
     });
-    // --- FIM DA SOLUÇÃO ---
 
-
-    const nebulaContainer = cardDiv.querySelector('.nebula-sky');
-    if (nebulaContainer) {
-        initializeNebulaEffect(nebulaContainer);
-    }
     return cardWrapper;
 }
 

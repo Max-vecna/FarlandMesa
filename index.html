@@ -3064,7 +3064,10 @@
                 } else {
                     character.spells.forEach(spellId => {
                         const spellData = spellsMap.get(spellId);
+
                         if (!spellData || spellData.type !== 'habilidade') return;
+                        //if (!spellData) return;
+
                         let imageURL = 'https://placehold.co/60x60/14b8a6/1f2937?text=M';
                         if (spellData.image) imageURL = URL.createObjectURL(bufferToBlob(spellData.image, spellData.imageMimeType));
                         const itemEl = document.createElement('div');
@@ -3175,12 +3178,42 @@
                         .remove();
                 }
             });
+
+
+            // Em index.html, substitua o seu cardDisplayArea.addEventListener por este:
+
             cardDisplayArea.addEventListener('click', async (e) => {
+                // --- INÍCIO DA NOVA LÓGICA PARA CLIQUE NA SIDEBAR ---
+                const sidebarItem = e.target.closest('.sidebar-item');
+                if (sidebarItem) {
+                    const type = sidebarItem.dataset.type;
+                    const templateId = sidebarItem.dataset.templateId;
+                    const characterCard = e.target.closest('.rpg-card');
+                    const characterId = characterCard ? characterCard.dataset.cardId : null;
+
+                    let itemData;
+                    if (type === 'item') {
+                        itemData = await getData(ITEM_STORE_NAME, templateId);
+                    } else { // 'spell'
+                        itemData = await getData(SPELL_STORE_NAME, templateId);
+                    }
+
+                    if (itemData) {
+                        await showExpandedCardInModal(itemData, type, characterId);
+                    }
+                    return; // Para a execução aqui, pois já tratamos o clique
+                }
+                // --- FIM DA NOVA LÓGICA ---
+
+
+                // Lógica antiga para os outros botões (com data-action)
                 const actionElement = e.target.closest('[data-action]');
                 const cardElement = e.target.closest('.rpg-card');
                 if (!cardElement || !actionElement) return;
+
                 const cardId = cardElement.dataset.cardId;
                 const action = actionElement.dataset.action;
+
                 if (action === 'open-status-modal') {
                     const local = actionElement.dataset.local;
                     openStatusModal(cardId, local);
@@ -3194,20 +3227,27 @@
                     playMp3Sound("ziper.mp3");
                     await showLinkViewForCharacter(cardId,
                         'spells');
-                }
-                if (action === 'open-grimoire-modal') {
+                } else if (action === 'open-grimoire-modal') {
                     const grimoireModal = cardElement.querySelector('.grimoire-modal');
+                      const nebulaSky = cardElement.querySelector('.nebula-sky');
+                    if (nebulaSky) nebulaSky.classList.add('parallax-disabled');
                     if (grimoireModal) {
                         grimoireModal.classList.add('visible');
 
-                        // Chamada ATUALIZADA para passar as dependências
+                        // --- ADIÇÃO: Impede a propagação de eventos para fora do modal ---
+                        const stopModalPropagation = (e) => e.stopPropagation();
+                        grimoireModal.addEventListener('mousedown', stopModalPropagation);
+                        grimoireModal.addEventListener('touchstart', stopModalPropagation);
+                        // Armazena a referência da função para poder removê-la depois
+                        grimoireModal.propagationStopper = stopModalPropagation;
+                        // --- FIM DA ADIÇÃO ---
+
                         const dependencies = {
                             getData,
                             bufferToBlob,
                             CARD_STORE_NAME,
                             SPELL_STORE_NAME
                         };
-
                         initializeGrimoireCarousel(grimoireModal, cardId, dependencies)
                             .then(carouselInstance => {
                                 grimoireModal.carouselInstance = carouselInstance;
@@ -3215,8 +3255,22 @@
                     }
                 } else if (action === 'close-grimoire-modal') {
                     const grimoireModal = actionElement.closest('.grimoire-modal');
+                    const parentCard = grimoireModal.closest('.rpg-card');
+                    if (parentCard) {
+                        const nebulaSky = parentCard.querySelector('.nebula-sky');
+                        if (nebulaSky) nebulaSky.classList.remove('parallax-disabled');
+                    }
                     if (grimoireModal) {
                         grimoireModal.classList.remove('visible');
+
+                        // --- ADIÇÃO: Limpa os event listeners para evitar memory leaks ---
+                        if (grimoireModal.propagationStopper) {
+                            grimoireModal.removeEventListener('mousedown', grimoireModal.propagationStopper);
+                            grimoireModal.removeEventListener('touchstart', grimoireModal.propagationStopper);
+                            grimoireModal.propagationStopper = null;
+                        }
+                        // --- FIM DA ADIÇÃO ---
+
                         if (grimoireModal.carouselInstance && grimoireModal.carouselInstance.destroy) {
                             grimoireModal.carouselInstance.destroy();
                             grimoireModal.carouselInstance = null;
