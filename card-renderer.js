@@ -290,10 +290,10 @@ export async function createCardElement(cardData) {
                             💰$<span data-status="money">${cardData.dinheiro || 0}</span>
                         </div>
                         <div class="text-center" style="width: 60%;">
-                            <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3>
+                            <h3 class="text-2xl font-bold">${cardData.title}</h3>
                             <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"> </div>
-                            <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p>
-                            <p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p>
+                            <p class="text-sm italic">${cardData.subTitle}</p>
+                            <p class="text-sm italic">${cardData.level}</p>
                         </div> 
                         
                         <div class="">
