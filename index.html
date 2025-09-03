@@ -1456,8 +1456,8 @@
              * @returns {Promise<Blob>} Uma Promise que resolve com a imagem comprimida como um Blob.
              */
             function compressImage(file, options = {
-                quality: 0.3,
-                maxWidth: 400
+                quality: 1,
+                maxWidth: 9999
             }) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
@@ -2883,16 +2883,16 @@
                 }
                 if (characterImageFile) {
                     const compressedBlob = await compressImage(characterImageFile, {
-                        quality: 0.75,
-                        maxWidth: 400
+                        quality: 1,
+                        maxWidth: 9999
                     });
                     cardData.image = await compressedBlob.arrayBuffer();
                     cardData.imageMimeType = compressedBlob.type;
                 }
                 if (backgroundImageFile) {
                     const compressedBlob = await compressImage(backgroundImageFile, {
-                        quality: 0.7,
-                        maxWidth: 1024
+                        quality: 1,
+                        maxWidth: 9999
                     });
                     cardData.backgroundImage = await compressedBlob.arrayBuffer();
                     cardData.backgroundMimeType = compressedBlob.type;
@@ -2935,8 +2935,8 @@
                 }
                 if (spellImageFile) {
                     const compressedBlob = await compressImage(spellImageFile, {
-                        quality: 0.75,
-                        maxWidth: 400
+                        quality: 1,
+                        maxWidth: 9999
                     });
                     spellData.image = await compressedBlob.arrayBuffer();
                     spellData.imageMimeType = compressedBlob.type;
@@ -2976,8 +2976,8 @@
                 }
                 if (itemImageFile) {
                     const compressedBlob = await compressImage(itemImageFile, {
-                        quality: 0.75,
-                        maxWidth: 400
+                        quality: 1,
+                        maxWidth: 9999
                     });
                     itemData.image = await compressedBlob.arrayBuffer();
                     itemData.imageMimeType = compressedBlob.type;
