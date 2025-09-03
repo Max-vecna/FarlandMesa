@@ -163,6 +163,7 @@ export async function createCardElement(cardData) {
     // Adicionado 'relative' para garantir que o modal absoluto se posicione corretamente
     cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card relative'; 
     cardDiv.dataset.cardId = cardData.id;
+    cardDiv.style.boxShadow = "inset 0 0 10px 1px black";
     cardDiv.style.backgroundImage = `url(${cardData.backgroundURL})`;
     let palette = {
         cardBg: 'rgba(31,41,55,0.9)',
