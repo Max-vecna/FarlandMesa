@@ -50,7 +50,7 @@ export async function initializeGrimoireCarousel(modalElement, characterId, depe
 
         cardElement.style.transition = 'none';
         cardElement.style.opacity = 1;
-        cardElement.style.transform = "scale(0.7)";
+        cardElement.style.transform = "scale(0.8)";
 
         const container3d = cardElement.querySelector('.card-3d-container');
         if (container3d) {

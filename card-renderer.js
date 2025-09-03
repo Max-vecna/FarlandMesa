@@ -215,7 +215,7 @@ export async function createCardElement(cardData) {
             <div id="glow-overlay"></div>
             <div class="card-3d">
                 <div class="card-front" style="border-color: ${palette.borderColor}; background-image:${imgIsPerson ? `url(${cardData.imageURL})` : 'transparent'} !important; background-position: center; background-size: cover;">
-                    <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, #00000085,transparent, #00000085, #000000ba);height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; ">
+                    <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; ">
                         
                     <div id="spell-sidebar" class="sidebar sidebar-left">
                             <div class="sidebar-content">
