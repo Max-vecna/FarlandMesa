@@ -284,7 +284,7 @@ export async function createCardElement(cardData) {
                         <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer" data-action="toggle-lore" title="Ver História">
                             <i class="fas fa-book"></i>
                         </div>
-                        <div class="absolute top-20 right-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-teal-200 cursor-pointer" data-action="open-grimoire-modal" title="Abrir Grimório">
+                        <div class="absolute top-20 right-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-teal-200 cursor-pointer" data-action="open-grimoire-modal" title="Abrir Grimório" style="display: none">
                             <i class="fas fa-book-open"></i>
                         </div>
                         <div class="absolute money-container top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" data-local="money" title="Alterar Dinheiro" style=" writing-mode: vertical-rl; text-orientation: upright;">
@@ -634,3 +634,4 @@ export async function createItemCardElement(itemData) {
 
     return cardWrapper;
 }
+
