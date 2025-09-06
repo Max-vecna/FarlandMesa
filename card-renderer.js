@@ -292,7 +292,7 @@ export async function createCardElement(cardData) {
                         </div>
                         <div class="text-center" style="width: 60%;">
                             <h3 class="text-2xl font-bold">${cardData.title}</h3>
-                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"> </div>
+                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, white, transparent); width: 100%"> </div>
                             <p class="text-sm italic">${cardData.subTitle}</p>
                             <p class="text-sm italic">${cardData.level}</p>
                         </div> 
@@ -634,4 +634,5 @@ export async function createItemCardElement(itemData) {
 
     return cardWrapper;
 }
+
 
