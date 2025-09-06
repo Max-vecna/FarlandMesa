@@ -3065,7 +3065,7 @@
                     character.spells.forEach(spellId => {
                         const spellData = spellsMap.get(spellId);
 
-                        if (!spellData || spellData.type !== 'habilidade') return;
+                        if (!spellData) return;
                         //if (!spellData) return;
 
                         let imageURL = 'https://placehold.co/60x60/14b8a6/1f2937?text=M';
@@ -4083,5 +4083,6 @@
         });
     </script>
 </body>
+
 
 </html>
